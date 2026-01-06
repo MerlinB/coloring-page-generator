@@ -6,7 +6,8 @@ A web app that generates coloring pages using Google's Gemini image generation A
 
 - Text-to-image coloring page generation
 - Optional kid-friendly mode for simpler, age-appropriate designs
-- In-memory gallery of previous generations
+- Persistent gallery stored locally in browser (IndexedDB)
+- Real-time sync across browser tabs
 - Download and print functionality
 
 ## Setup

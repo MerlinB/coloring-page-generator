@@ -24,12 +24,14 @@ This is a coloring page generator web app using SvelteKit and Google's Gemini im
 2. Server action (`+page.server.ts`) validates input and calls `generateColoringPage()`
 3. `$lib/server/gemini.ts` constructs prompts with coloring book requirements and calls Gemini API
 4. Generated image (base64) is returned to client and stored in gallery store
-5. Gallery store (`$lib/stores/gallery.svelte.ts`) manages in-memory state using Svelte 5 runes
+5. Gallery store (`$lib/stores/gallery.svelte.ts`) manages state using Svelte 5 runes
+6. Images are persisted to IndexedDB (`$lib/db/`) and synced across browser tabs via BroadcastChannel
 
 ### Key Files
 
 - `src/lib/server/gemini.ts` - Gemini API integration, prompt engineering for coloring pages
 - `src/lib/stores/gallery.svelte.ts` - Client-side state management (images, loading, errors)
+- `src/lib/db/` - IndexedDB persistence and cross-tab sync (via `idb` library)
 - `src/lib/types.ts` - TypeScript interfaces (`GalleryImage`, `GenerationResult`)
 
 ### Components
