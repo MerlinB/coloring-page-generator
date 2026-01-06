@@ -1,6 +1,11 @@
 import { GoogleGenAI } from "@google/genai"
 import { GEMINI_API_KEY } from "$env/static/private"
-import type { GenerationResult } from "$lib/types"
+import type { GenerationResult, PageFormat } from "$lib/types"
+
+const FORMAT_TO_ASPECT_RATIO: Record<PageFormat, string> = {
+  portrait: "3:4",
+  landscape: "4:3",
+}
 
 const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY })
 
@@ -22,6 +27,7 @@ const KID_FRIENDLY_ADDITIONS = `
 export async function generateColoringPage(
   userPrompt: string,
   kidFriendly: boolean = false,
+  format: PageFormat = "portrait",
 ): Promise<GenerationResult> {
   try {
     const prompt = kidFriendly
@@ -38,7 +44,7 @@ Subject: ${userPrompt}`
       config: {
         responseModalities: ["TEXT", "IMAGE"],
         imageConfig: {
-          aspectRatio: "1:1",
+          aspectRatio: FORMAT_TO_ASPECT_RATIO[format],
         },
       },
     })

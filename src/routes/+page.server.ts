@@ -1,12 +1,16 @@
 import { fail } from "@sveltejs/kit"
 import { generateColoringPage } from "$lib/server/gemini"
 import type { Actions } from "./$types"
+import type { PageFormat } from "$lib/types"
 
 export const actions: Actions = {
   default: async ({ request }) => {
     const formData = await request.formData()
     const prompt = formData.get("prompt")
     const kidFriendly = formData.get("kidFriendly") === "on"
+    const formatValue = formData.get("format")
+    const format: PageFormat =
+      formatValue === "landscape" ? "landscape" : "portrait"
 
     if (!prompt || typeof prompt !== "string") {
       return fail(400, {
@@ -33,7 +37,7 @@ export const actions: Actions = {
     }
 
     try {
-      const result = await generateColoringPage(trimmedPrompt, kidFriendly)
+      const result = await generateColoringPage(trimmedPrompt, kidFriendly, format)
 
       if (!result.success || !result.imageData) {
         return fail(500, {
@@ -51,6 +55,7 @@ export const actions: Actions = {
           prompt: trimmedPrompt,
           imageData: result.imageData,
           createdAt: new Date().toISOString(),
+          format,
         },
       }
     } catch (err) {

@@ -5,8 +5,9 @@
   <PromptForm disabled={isLoading} />
 -->
 <script lang="ts">
-  import { WandSparkles } from "@lucide/svelte"
+  import { WandSparkles, RectangleVertical, RectangleHorizontal } from "@lucide/svelte"
   import SuggestionChips from "./SuggestionChips.svelte"
+  import type { PageFormat } from "$lib/types"
 
   interface Props {
     disabled?: boolean
@@ -24,6 +25,7 @@
   ]
 
   let inputValue = $state("")
+  let selectedFormat = $state<PageFormat>("portrait")
 
   function useSuggestion(suggestion: string) {
     inputValue = suggestion
@@ -55,6 +57,43 @@
   </div>
 
   <SuggestionChips {suggestions} onselect={useSuggestion} {disabled} />
+
+  <div>
+    <span class="mb-2 block font-display text-sm font-medium text-coral-700">
+      Page format
+    </span>
+    <div class="flex gap-3">
+      <input type="hidden" name="format" value={selectedFormat} />
+
+      <button
+        type="button"
+        onclick={() => (selectedFormat = "portrait")}
+        {disabled}
+        class="flex flex-col items-center gap-1 rounded-xl px-4 py-3 transition-all disabled:opacity-50 {selectedFormat ===
+        'portrait'
+          ? 'bg-coral-100 text-coral-700 ring-2 ring-coral-400'
+          : 'bg-mint-50 text-mint-600 hover:bg-mint-100'}"
+        aria-pressed={selectedFormat === "portrait"}
+      >
+        <RectangleVertical class="h-8 w-6" strokeWidth={2} />
+        <span class="text-xs font-medium">Portrait</span>
+      </button>
+
+      <button
+        type="button"
+        onclick={() => (selectedFormat = "landscape")}
+        {disabled}
+        class="flex flex-col items-center gap-1 rounded-xl px-4 py-3 transition-all disabled:opacity-50 {selectedFormat ===
+        'landscape'
+          ? 'bg-coral-100 text-coral-700 ring-2 ring-coral-400'
+          : 'bg-mint-50 text-mint-600 hover:bg-mint-100'}"
+        aria-pressed={selectedFormat === "landscape"}
+      >
+        <RectangleHorizontal class="h-6 w-8" strokeWidth={2} />
+        <span class="text-xs font-medium">Landscape</span>
+      </button>
+    </div>
+  </div>
 
   <label
     class="flex cursor-pointer items-center gap-3 rounded-xl bg-mint-50 p-3 transition-colors hover:bg-mint-100"
