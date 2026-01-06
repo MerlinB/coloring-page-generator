@@ -12,11 +12,13 @@ A web app that generates coloring pages using Google's Gemini image generation A
 ## Setup
 
 1. Install dependencies:
+
    ```sh
    pnpm install
    ```
 
 2. Create a `.env` file with your Gemini API key:
+
    ```
    GEMINI_API_KEY=your_api_key_here
    ```

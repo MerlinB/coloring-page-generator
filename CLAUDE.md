@@ -34,10 +34,15 @@ This is a coloring page generator web app using SvelteKit and Google's Gemini im
 
 ### Components
 
-- `PromptInput.svelte` - Form input with suggestions and kid-friendly toggle
-- `ImageDisplay.svelte` - Shows current image with download/print actions
-- `Gallery.svelte` - Grid of previously generated images
-- `LoadingSpinner.svelte` - Loading indicator
+All components use `@lucide/svelte` for icons.
+
+- `LoadingSpinner.svelte` - Animated loading indicator with brand colors
+- `ErrorMessage.svelte` - Dismissable error display
+- `SuggestionChips.svelte` - Clickable prompt suggestion chips
+- `PromptForm.svelte` - Form input with suggestions, kid-friendly toggle, and submit button
+- `ImageViewer.svelte` - Shows current image with download/print actions, or placeholder when empty
+- `GalleryItem.svelte` - Individual gallery thumbnail with delete button
+- `Gallery.svelte` - Responsive grid of previously generated images
 
 ## Design Guidelines
 
@@ -45,20 +50,20 @@ This project has a playful, child-friendly design system targeting kids and pare
 
 ### Design Feel
 
-| Aspect            | Value                                              |
-| ----------------- | -------------------------------------------------- |
-| **Feel**          | Playful, friendly, warm, approachable              |
-| **Heading Font**  | Nunito (rounded sans-serif)                        |
-| **Body Font**     | DM Sans                                            |
-| **Primary Color** | Coral (`--color-coral-*`)                          |
-| **Secondary**     | Mint (`--color-mint-*`)                            |
-| **Accent**        | Lavender (`--color-lavender-*`)                    |
-| **Border Radius** | Moderate (8-12px base)                             |
-| **Shadows**       | Soft, warm-tinted for gentle depth                 |
-| **Borders**       | Subtle 1px borders + shadows for card definition   |
-| **Spacing**       | Spacious - breathing room for easy tapping         |
-| **Dark Mode**     | Light only                                         |
-| **Platform**      | Web (desktop + mobile)                             |
+| Aspect            | Value                                            |
+| ----------------- | ------------------------------------------------ |
+| **Feel**          | Playful, friendly, warm, approachable            |
+| **Heading Font**  | Nunito (rounded sans-serif)                      |
+| **Body Font**     | DM Sans                                          |
+| **Primary Color** | Coral (`--color-coral-*`)                        |
+| **Secondary**     | Mint (`--color-mint-*`)                          |
+| **Accent**        | Lavender (`--color-lavender-*`)                  |
+| **Border Radius** | Moderate (8-12px base)                           |
+| **Shadows**       | Soft, warm-tinted for gentle depth               |
+| **Borders**       | Subtle 1px borders + shadows for card definition |
+| **Spacing**       | Spacious - breathing room for easy tapping       |
+| **Dark Mode**     | Light only                                       |
+| **Platform**      | Web (desktop + mobile)                           |
 
 ### Design Principles
 
@@ -127,8 +132,11 @@ Three complete color scales are available for fine-grained control:
 - **Lavender** (`lavender-50` to `lavender-900`): Accent for chips, highlights
 
 Example usage:
+
 ```html
-<button class="bg-coral-500 hover:bg-coral-600 text-white">Primary Button</button>
+<button class="bg-coral-500 text-white hover:bg-coral-600">
+  Primary Button
+</button>
 <div class="bg-mint-100 text-mint-800">Secondary container</div>
 <span class="bg-lavender-50 text-lavender-600">Suggestion chip</span>
 ```
@@ -144,11 +152,11 @@ Example usage:
 
 ### Utility Classes
 
-| Class           | Purpose                          |
-| --------------- | -------------------------------- |
-| `.font-display` | Apply Nunito heading font        |
-| `.card-elevated`| Card with shadow, no border      |
-| `.card-bordered`| Card with subtle border + shadow |
+| Class            | Purpose                          |
+| ---------------- | -------------------------------- |
+| `.font-display`  | Apply Nunito heading font        |
+| `.card-elevated` | Card with shadow, no border      |
+| `.card-bordered` | Card with subtle border + shadow |
 
 ### Interactions
 
