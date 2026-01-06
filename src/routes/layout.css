@@ -1,1 +1,239 @@
+/* Google Fonts - must come before tailwindcss import */
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400;1,9..40,500&display=swap");
+
 @import "tailwindcss";
+
+/*
+ * Design System Theme
+ *
+ * Coloring Pages Generator - A playful, child-friendly app
+ *
+ * Theme: Soft Pastel with Coral/Peach primary
+ * Feel: Playful, friendly, warm, approachable
+ * Platform: Web (desktop + mobile)
+ * Mode: Light only
+ *
+ * Pattern: Define raw values in :root, then map to @theme inline
+ */
+
+/* ========================================
+ * STATIC THEME TOKENS
+ * Fonts (don't need CSS variable access)
+ * ======================================== */
+@theme {
+  --font-display: "Nunito", system-ui, sans-serif;
+  --font-sans: "DM Sans", system-ui, sans-serif;
+}
+
+/* ========================================
+ * BRAND COLORS
+ * Static scales available everywhere via var()
+ * ======================================== */
+:root {
+  /* Coral/Peach - Primary accent scale */
+  --coral-50: oklch(0.98 0.02 25);
+  --coral-100: oklch(0.95 0.04 25);
+  --coral-200: oklch(0.90 0.08 25);
+  --coral-300: oklch(0.82 0.12 22);
+  --coral-400: oklch(0.72 0.14 20);
+  --coral-500: oklch(0.65 0.16 18);
+  --coral-600: oklch(0.55 0.14 16);
+  --coral-700: oklch(0.48 0.12 15);
+  --coral-800: oklch(0.40 0.10 14);
+  --coral-900: oklch(0.32 0.08 13);
+  --coral-950: oklch(0.25 0.06 12);
+
+  /* Mint - Secondary scale (complementary cool tone) */
+  --mint-50: oklch(0.98 0.02 165);
+  --mint-100: oklch(0.95 0.04 165);
+  --mint-200: oklch(0.90 0.06 165);
+  --mint-300: oklch(0.82 0.10 165);
+  --mint-400: oklch(0.72 0.12 165);
+  --mint-500: oklch(0.62 0.14 165);
+  --mint-600: oklch(0.52 0.12 165);
+  --mint-700: oklch(0.44 0.10 165);
+  --mint-800: oklch(0.36 0.08 165);
+  --mint-900: oklch(0.28 0.06 165);
+
+  /* Lavender - Accent scale (for chips, highlights) */
+  --lavender-50: oklch(0.97 0.02 290);
+  --lavender-100: oklch(0.94 0.04 290);
+  --lavender-200: oklch(0.88 0.08 290);
+  --lavender-300: oklch(0.78 0.12 290);
+  --lavender-400: oklch(0.68 0.14 290);
+  --lavender-500: oklch(0.58 0.14 290);
+  --lavender-600: oklch(0.48 0.12 290);
+  --lavender-700: oklch(0.40 0.10 290);
+  --lavender-800: oklch(0.32 0.08 290);
+  --lavender-900: oklch(0.25 0.06 290);
+
+  /* Semantic colors */
+  --background: oklch(0.99 0.01 25);
+  --foreground: oklch(0.25 0.02 20);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.25 0.02 20);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.25 0.02 20);
+
+  --primary: oklch(0.65 0.16 18);
+  --primary-foreground: oklch(0.99 0 0);
+
+  --secondary: oklch(0.95 0.04 165);
+  --secondary-foreground: oklch(0.35 0.10 165);
+
+  --muted: oklch(0.97 0.01 25);
+  --muted-foreground: oklch(0.55 0.02 20);
+
+  --accent: oklch(0.97 0.02 290);
+  --accent-foreground: oklch(0.45 0.12 290);
+
+  --destructive: oklch(0.55 0.20 25);
+  --destructive-foreground: oklch(0.98 0 0);
+
+  --success: oklch(0.60 0.18 145);
+  --success-foreground: oklch(0.98 0 0);
+
+  --warning: oklch(0.78 0.14 70);
+  --warning-foreground: oklch(0.25 0.05 60);
+
+  --border: oklch(0.92 0.02 25);
+  --input: oklch(0.92 0.02 25);
+  --ring: oklch(0.65 0.16 18);
+
+  /* Shadows - soft, warm-tinted */
+  --shadow-sm: 0 1px 2px oklch(0.25 0.02 20 / 0.04);
+  --shadow: 0 2px 4px oklch(0.25 0.02 20 / 0.06), 0 4px 8px oklch(0.25 0.02 20 / 0.04);
+  --shadow-md: 0 4px 8px oklch(0.25 0.02 20 / 0.06), 0 8px 16px oklch(0.25 0.02 20 / 0.08);
+  --shadow-lg: 0 8px 16px oklch(0.25 0.02 20 / 0.08), 0 16px 32px oklch(0.25 0.02 20 / 0.10);
+
+  /* Border radius - moderate (10px base) */
+  --radius: 0.625rem;
+}
+
+/* ========================================
+ * @theme inline - Bridge CSS vars to Tailwind utilities
+ * This allows bg-background, text-foreground, etc.
+ * ======================================== */
+@theme inline {
+  /* Brand colors - coral scale */
+  --color-coral-50: var(--coral-50);
+  --color-coral-100: var(--coral-100);
+  --color-coral-200: var(--coral-200);
+  --color-coral-300: var(--coral-300);
+  --color-coral-400: var(--coral-400);
+  --color-coral-500: var(--coral-500);
+  --color-coral-600: var(--coral-600);
+  --color-coral-700: var(--coral-700);
+  --color-coral-800: var(--coral-800);
+  --color-coral-900: var(--coral-900);
+  --color-coral-950: var(--coral-950);
+
+  /* Brand colors - mint scale */
+  --color-mint-50: var(--mint-50);
+  --color-mint-100: var(--mint-100);
+  --color-mint-200: var(--mint-200);
+  --color-mint-300: var(--mint-300);
+  --color-mint-400: var(--mint-400);
+  --color-mint-500: var(--mint-500);
+  --color-mint-600: var(--mint-600);
+  --color-mint-700: var(--mint-700);
+  --color-mint-800: var(--mint-800);
+  --color-mint-900: var(--mint-900);
+
+  /* Brand colors - lavender scale */
+  --color-lavender-50: var(--lavender-50);
+  --color-lavender-100: var(--lavender-100);
+  --color-lavender-200: var(--lavender-200);
+  --color-lavender-300: var(--lavender-300);
+  --color-lavender-400: var(--lavender-400);
+  --color-lavender-500: var(--lavender-500);
+  --color-lavender-600: var(--lavender-600);
+  --color-lavender-700: var(--lavender-700);
+  --color-lavender-800: var(--lavender-800);
+  --color-lavender-900: var(--lavender-900);
+
+  /* Semantic colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Shadows */
+  --shadow-sm: var(--shadow-sm);
+  --shadow: var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+
+  /* Border radius scale based on --radius */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 14px);
+
+  /* Spacing tokens */
+  --spacing-card: 1.5rem;
+  --spacing-card-sm: 1rem;
+}
+
+/* ========================================
+ * BASE STYLES
+ * ======================================== */
+html {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Apply semantic styles to body */
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* ========================================
+ * UTILITY CLASSES
+ * For special cases not covered by Tailwind utilities
+ * ======================================== */
+
+/* Typography */
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* Card with elevation (shadow-based) */
+.card-elevated {
+  background-color: var(--card);
+  box-shadow: var(--shadow);
+  border-radius: var(--radius-lg);
+}
+
+/* Card with border + shadow */
+.card-bordered {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-lg);
+}

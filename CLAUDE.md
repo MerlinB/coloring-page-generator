@@ -39,6 +39,124 @@ This is a coloring page generator web app using SvelteKit and Google's Gemini im
 - `Gallery.svelte` - Grid of previously generated images
 - `LoadingSpinner.svelte` - Loading indicator
 
+## Design Guidelines
+
+This project has a playful, child-friendly design system targeting kids and parents.
+
+### Design Feel
+
+| Aspect            | Value                                              |
+| ----------------- | -------------------------------------------------- |
+| **Feel**          | Playful, friendly, warm, approachable              |
+| **Heading Font**  | Nunito (rounded sans-serif)                        |
+| **Body Font**     | DM Sans                                            |
+| **Primary Color** | Coral (`--color-coral-*`)                          |
+| **Secondary**     | Mint (`--color-mint-*`)                            |
+| **Accent**        | Lavender (`--color-lavender-*`)                    |
+| **Border Radius** | Moderate (8-12px base)                             |
+| **Shadows**       | Soft, warm-tinted for gentle depth                 |
+| **Borders**       | Subtle 1px borders + shadows for card definition   |
+| **Spacing**       | Spacious - breathing room for easy tapping         |
+| **Dark Mode**     | Light only                                         |
+| **Platform**      | Web (desktop + mobile)                             |
+
+### Design Principles
+
+1. **Child-friendly first** - Large touch targets, clear visuals, nothing overwhelming
+2. **Warm and inviting** - Soft pastels, no harsh contrasts
+3. **Consistent semantic colors** - Always use tokens (`bg-primary`, `text-foreground`), never raw color values
+4. **Accessible** - Maintain proper contrast ratios for readability
+5. **No external component libraries** - Build all components in-house using Tailwind
+
+### Tailwind 4 Theming (shadcn-style)
+
+Design tokens are defined in `src/routes/layout.css` following the shadcn pattern:
+
+**1. Raw CSS variables** in `:root` — define actual color values:
+
+```css
+:root {
+  --background: oklch(0.99 0.01 25);
+  --foreground: oklch(0.25 0.02 20);
+  --primary: oklch(0.65 0.16 18);
+  --radius: 0.625rem;
+}
+```
+
+**2. `@theme inline`** — bridges CSS variables to Tailwind utilities:
+
+```css
+@theme inline {
+  --color-background: var(--background); /* → bg-background */
+  --color-primary: var(--primary); /* → bg-primary, text-primary */
+  --radius-lg: var(--radius); /* → rounded-lg */
+}
+```
+
+**3. `@theme`** (static) — fonts that don't need CSS variable access:
+
+```css
+@theme {
+  --font-display: "Nunito", system-ui, sans-serif;
+  --font-sans: "DM Sans", system-ui, sans-serif;
+}
+```
+
+**Note:** Brand colors (coral, mint, lavender) are in `:root` and bridged via `@theme inline`, so they're available both as `var(--coral-500)` and `bg-coral-500`.
+
+### Semantic Color Tokens
+
+| Token                 | Background       | Text                                       |
+| --------------------- | ---------------- | ------------------------------------------ |
+| background/foreground | `bg-background`  | `text-foreground`                          |
+| card                  | `bg-card`        | `text-card-foreground`                     |
+| primary               | `bg-primary`     | `text-primary` / `text-primary-foreground` |
+| secondary             | `bg-secondary`   | `text-secondary-foreground`                |
+| muted                 | `bg-muted`       | `text-muted-foreground`                    |
+| accent                | `bg-accent`      | `text-accent-foreground`                   |
+| destructive           | `bg-destructive` | `text-destructive`                         |
+| success               | `bg-success`     | `text-success`                             |
+| warning               | `bg-warning`     | `text-warning`                             |
+
+### Brand Color Scales
+
+Three complete color scales are available for fine-grained control:
+
+- **Coral** (`coral-50` to `coral-950`): Primary warm accent
+- **Mint** (`mint-50` to `mint-900`): Secondary cool complement
+- **Lavender** (`lavender-50` to `lavender-900`): Accent for chips, highlights
+
+Example usage:
+```html
+<button class="bg-coral-500 hover:bg-coral-600 text-white">Primary Button</button>
+<div class="bg-mint-100 text-mint-800">Secondary container</div>
+<span class="bg-lavender-50 text-lavender-600">Suggestion chip</span>
+```
+
+### Contrast Standards (OKLCH Lightness)
+
+| Requirement           | Minimum Δ Lightness |
+| --------------------- | ------------------- |
+| Background → Card     | 0.05                |
+| Text on any surface   | 0.60                |
+| Muted text on surface | 0.35                |
+| Border visibility     | 0.08 from surface   |
+
+### Utility Classes
+
+| Class           | Purpose                          |
+| --------------- | -------------------------------- |
+| `.font-display` | Apply Nunito heading font        |
+| `.card-elevated`| Card with shadow, no border      |
+| `.card-bordered`| Card with subtle border + shadow |
+
+### Interactions
+
+- Use `hover:` states for desktop feedback
+- Use `active:scale-[0.98]` for press feedback on buttons
+- Smooth transitions: `transition-colors`, `transition-transform`
+- Keep animations subtle - this is for kids, not distracting
+
 ## Environment
 
 Requires `GEMINI_API_KEY` in `.env` file. Uses the `gemini-3-pro-image-preview` model.
