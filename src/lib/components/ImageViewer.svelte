@@ -6,7 +6,7 @@
   <ImageViewer imageData={null} prompt={null} />
 -->
 <script lang="ts">
-  import { Image, Download, Printer, Maximize2, Pencil } from "@lucide/svelte"
+  import { Image, Download, Printer, Pencil } from "@lucide/svelte"
   import { printImage as doPrint } from "$lib/utils/print"
 
   interface Props {
@@ -59,15 +59,6 @@
           alt="Coloring page: {prompt}"
           class="h-auto w-full"
         />
-      {/if}
-
-      <!-- Expand hint (top right) -->
-      {#if onexpand}
-        <div
-          class="pointer-events-none absolute top-3 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 text-coral-600 opacity-0 shadow-md transition-opacity group-hover:opacity-100"
-        >
-          <Maximize2 class="h-5 w-5" />
-        </div>
       {/if}
 
       <!-- Action buttons (bottom right, floating individually) -->

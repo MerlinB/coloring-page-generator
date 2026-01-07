@@ -4,8 +4,7 @@
   @example
   <Gallery
     images={gallery.images}
-    onselect={(image) => gallery.setCurrentImage(image)}
-    onlightbox={(index) => openLightbox(index)}
+    onselect={(index) => openLightbox(index)}
     ondelete={(id) => gallery.removeImage(id)}
   />
 -->
@@ -15,13 +14,12 @@
 
   interface Props {
     images: GalleryImage[]
-    onselect: (image: GalleryImage) => void
-    onlightbox?: (index: number) => void
+    onselect: (index: number) => void
     ondelete: (id: string) => void
     onedit?: (image: GalleryImage) => void
   }
 
-  let { images, onselect, onlightbox, ondelete, onedit }: Props = $props()
+  let { images, onselect, ondelete, onedit }: Props = $props()
 </script>
 
 <div
@@ -30,8 +28,7 @@
   {#each images as image, index (image.id)}
     <GalleryItem
       {image}
-      onselect={() => onselect(image)}
-      onexpand={onlightbox ? () => onlightbox(index) : undefined}
+      onexpand={() => onselect(index)}
       ondelete={() => ondelete(image.id)}
       onedit={onedit ? () => onedit(image) : undefined}
     />

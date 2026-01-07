@@ -177,8 +177,7 @@
       </h2>
       <Gallery
         images={gallery.images}
-        onselect={(image) => gallery.setCurrentImage(image)}
-        onlightbox={(index) => openLightbox(index)}
+        onselect={(index) => openLightbox(index)}
         ondelete={(id) => gallery.removeImage(id)}
         onedit={(image) => openEditModal(image)}
       />
