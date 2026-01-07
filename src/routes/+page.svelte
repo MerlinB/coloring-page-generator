@@ -9,12 +9,6 @@
   import Lightbox from "$lib/components/Lightbox.svelte"
   import type { ActionData } from "./$types"
 
-  interface Props {
-    form: ActionData
-  }
-
-  let { form }: Props = $props()
-
   // Lightbox state
   let lightboxOpen = $state(false)
   let lightboxIndex = $state(0)
@@ -44,18 +38,6 @@
     }
   }
 
-  $effect(() => {
-    if (form?.success && form.image) {
-      gallery.addImage({
-        ...form.image,
-        createdAt: new Date(form.image.createdAt),
-      })
-      gallery.setGenerating(false)
-    } else if (form?.error) {
-      gallery.setError(form.error)
-      gallery.setGenerating(false)
-    }
-  })
 </script>
 
 <svelte:head>
@@ -98,8 +80,25 @@
             gallery.setGenerating(true)
             gallery.clearError()
 
-            return async ({ update }) => {
-              await update()
+            return async ({ result, update }) => {
+              if (result.type === "success") {
+                const data = result.data as ActionData
+                if (data?.success && data.image) {
+                  gallery.addImage({
+                    ...data.image,
+                    createdAt: new Date(data.image.createdAt),
+                  })
+                } else if (data?.error) {
+                  gallery.setError(data.error)
+                }
+              } else if (result.type === "failure") {
+                const data = result.data as ActionData
+                gallery.setError(data?.error ?? "Generation failed")
+              } else if (result.type === "error") {
+                gallery.setError("An unexpected error occurred")
+              }
+              gallery.setGenerating(false)
+              await update({ reset: false })
             }
           }}
         >
