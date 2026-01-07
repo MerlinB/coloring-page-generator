@@ -14,6 +14,7 @@
   import { ChevronLeft, ChevronRight, X, Download, Printer, Trash2 } from "@lucide/svelte"
   import type { GalleryImage } from "$lib/types"
   import { untrack } from "svelte"
+  import { printImage as doPrint } from "$lib/utils/print"
 
   interface Props {
     images: GalleryImage[]
@@ -33,6 +34,7 @@
   // Element refs
   let backdropEl: HTMLDivElement | undefined = $state()
   let dialogEl: HTMLDivElement | undefined = $state()
+  let imageEl: HTMLImageElement | undefined = $state()
   let previouslyFocused: Element | null = null
 
   // Derived values
@@ -112,20 +114,7 @@
   }
 
   function printImage() {
-    if (!currentImage) return
-    const printWindow = window.open("", "_blank")
-    if (printWindow) {
-      printWindow.document.write(`
-        <html>
-          <head><title>Coloring Page - ${currentImage.prompt}</title></head>
-          <body style="margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh;">
-            <img src="data:image/png;base64,${currentImage.imageData}" style="max-width: 100%; max-height: 100vh;" />
-          </body>
-        </html>
-      `)
-      printWindow.document.close()
-      printWindow.print()
-    }
+    if (imageEl) doPrint(imageEl)
   }
 
   function deleteImage() {
@@ -231,6 +220,7 @@
       <div class="flex max-h-[75vh] flex-col items-center px-16 sm:px-20">
         <div class="overflow-hidden rounded-2xl bg-white shadow-2xl">
           <img
+            bind:this={imageEl}
             src="data:image/png;base64,{currentImage.imageData}"
             alt="Coloring page: {currentImage.prompt}"
             class="max-h-[70vh] w-auto object-contain"

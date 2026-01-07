@@ -7,6 +7,7 @@
 -->
 <script lang="ts">
   import { Image, Download, Printer, Maximize2 } from "@lucide/svelte"
+  import { printImage as doPrint } from "$lib/utils/print"
 
   interface Props {
     imageData: string | null
@@ -15,6 +16,8 @@
   }
 
   let { imageData, prompt, onexpand }: Props = $props()
+
+  let imageEl: HTMLImageElement | undefined = $state()
 
   function downloadImage() {
     if (!imageData) return
@@ -25,20 +28,7 @@
   }
 
   function printImage() {
-    if (!imageData || !prompt) return
-    const printWindow = window.open("", "_blank")
-    if (printWindow) {
-      printWindow.document.write(`
-        <html>
-          <head><title>Coloring Page - ${prompt}</title></head>
-          <body style="margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh;">
-            <img src="data:image/png;base64,${imageData}" style="max-width: 100%; max-height: 100vh;" />
-          </body>
-        </html>
-      `)
-      printWindow.document.close()
-      printWindow.print()
-    }
+    if (imageEl) doPrint(imageEl)
   }
 </script>
 
@@ -53,6 +43,7 @@
         aria-label="View full size"
       >
         <img
+          bind:this={imageEl}
           src="data:image/png;base64,{imageData}"
           alt="Coloring page: {prompt}"
           class="h-auto w-full"
@@ -60,6 +51,7 @@
       </button>
     {:else}
       <img
+        bind:this={imageEl}
         src="data:image/png;base64,{imageData}"
         alt="Coloring page: {prompt}"
         class="h-auto w-full"

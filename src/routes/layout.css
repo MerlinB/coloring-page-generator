@@ -240,3 +240,49 @@ body {
   box-shadow: var(--shadow-sm);
   border-radius: var(--radius-lg);
 }
+
+/* ========================================
+ * PRINT STYLES
+ * Hide everything except the target image
+ * ======================================== */
+@page {
+  margin: 0;
+}
+
+@media print {
+  /* Reset and collapse document to prevent extra pages */
+  html {
+    height: auto !important;
+  }
+
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    background: white !important;
+  }
+
+  /* Hide all content visually but keep layout collapsed */
+  body * {
+    visibility: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Show only the print target - fixed positioning takes it out of flow */
+  .print-target {
+    visibility: visible !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    max-height: none !important;
+    object-fit: contain !important;
+    background: white !important;
+    z-index: 999999 !important;
+  }
+}
