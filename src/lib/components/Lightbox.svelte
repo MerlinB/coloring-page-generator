@@ -11,7 +11,15 @@
   />
 -->
 <script lang="ts">
-  import { ChevronLeft, ChevronRight, X, Download, Printer, Trash2 } from "@lucide/svelte"
+  import {
+    ChevronLeft,
+    ChevronRight,
+    X,
+    Download,
+    Printer,
+    Trash2,
+    Pencil,
+  } from "@lucide/svelte"
   import type { GalleryImage } from "$lib/types"
   import { untrack } from "svelte"
   import { printImage as doPrint } from "$lib/utils/print"
@@ -22,9 +30,11 @@
     onclose: () => void
     onnavigate: (index: number) => void
     ondelete: (id: string) => void
+    onedit?: (image: GalleryImage) => void
   }
 
-  let { images, currentIndex, onclose, onnavigate, ondelete }: Props = $props()
+  let { images, currentIndex, onclose, onnavigate, ondelete, onedit }: Props =
+    $props()
 
   // Touch swipe state
   let touchStartX = $state(0)
@@ -197,7 +207,7 @@
         type="button"
         onclick={() => navigatePrev()}
         aria-label="Previous image"
-        class="absolute left-0 top-1/2 z-10 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 sm:left-4"
+        class="absolute top-1/2 left-0 z-10 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 sm:left-4"
       >
         <ChevronLeft class="h-8 w-8" />
       </button>
@@ -209,7 +219,7 @@
         type="button"
         onclick={() => navigateNext()}
         aria-label="Next image"
-        class="absolute right-0 top-1/2 z-10 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 sm:right-4"
+        class="absolute top-1/2 right-0 z-10 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 sm:right-4"
       >
         <ChevronRight class="h-8 w-8" />
       </button>
@@ -236,7 +246,7 @@
 
     <!-- Bottom bar -->
     <div
-      class="absolute bottom-0 left-0 right-0 flex items-center justify-between px-4 pb-4 sm:px-8"
+      class="absolute right-0 bottom-0 left-0 flex items-center justify-between px-4 pb-4 sm:px-8"
     >
       <!-- Position indicator -->
       <span class="text-sm text-white/70" aria-live="polite">
@@ -245,6 +255,17 @@
 
       <!-- Action buttons -->
       <div class="flex gap-3">
+        {#if onedit && currentImage}
+          <button
+            type="button"
+            onclick={() => onedit(currentImage)}
+            aria-label="Edit"
+            class="flex h-11 w-11 items-center justify-center rounded-full bg-lavender-500/80 text-white transition-colors hover:bg-lavender-500"
+          >
+            <Pencil class="h-5 w-5" />
+          </button>
+        {/if}
+
         <button
           type="button"
           onclick={() => downloadImage()}

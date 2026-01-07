@@ -18,9 +18,10 @@
     onselect: (image: GalleryImage) => void
     onlightbox?: (index: number) => void
     ondelete: (id: string) => void
+    onedit?: (image: GalleryImage) => void
   }
 
-  let { images, onselect, onlightbox, ondelete }: Props = $props()
+  let { images, onselect, onlightbox, ondelete, onedit }: Props = $props()
 </script>
 
 <div
@@ -32,6 +33,7 @@
       onselect={() => onselect(image)}
       onexpand={onlightbox ? () => onlightbox(index) : undefined}
       ondelete={() => ondelete(image.id)}
+      onedit={onedit ? () => onedit(image) : undefined}
     />
   {/each}
 </div>

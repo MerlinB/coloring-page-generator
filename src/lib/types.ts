@@ -6,6 +6,8 @@ export interface GalleryImage {
   imageData: string // base64 encoded
   createdAt: Date
   format?: PageFormat
+  sourceImageId?: string // ID of original image if this was edited from another
+  editPrompt?: string // The edit instruction used
 }
 
 export interface GenerationResult {

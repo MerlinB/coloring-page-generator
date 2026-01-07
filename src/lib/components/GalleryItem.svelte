@@ -10,7 +10,7 @@
   />
 -->
 <script lang="ts">
-  import { X, Maximize2 } from "@lucide/svelte"
+  import { X, Maximize2, Pencil } from "@lucide/svelte"
   import type { GalleryImage } from "$lib/types"
 
   interface Props {
@@ -18,9 +18,10 @@
     onselect: () => void
     onexpand?: () => void
     ondelete: () => void
+    onedit?: () => void
   }
 
-  let { image, onselect, onexpand, ondelete }: Props = $props()
+  let { image, onselect, onexpand, ondelete, onedit }: Props = $props()
 </script>
 
 <div class="group relative">
@@ -41,11 +42,24 @@
     <button
       type="button"
       onclick={() => onexpand()}
-      class="absolute bottom-2 left-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-coral-600 opacity-0 shadow-md transition-all hover:bg-white hover:scale-110 group-hover:opacity-100"
+      class="absolute bottom-2 left-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-coral-600 opacity-0 shadow-md transition-all group-hover:opacity-100 hover:scale-110 hover:bg-white"
       title="View full size"
       aria-label="View full size"
     >
       <Maximize2 class="h-4 w-4" />
+    </button>
+  {/if}
+
+  <!-- Edit button -->
+  {#if onedit}
+    <button
+      type="button"
+      onclick={() => onedit()}
+      class="absolute right-2 bottom-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-lavender-600 opacity-0 shadow-md transition-all group-hover:opacity-100 hover:scale-110 hover:bg-white"
+      title="Edit"
+      aria-label="Edit"
+    >
+      <Pencil class="h-4 w-4" />
     </button>
   {/if}
 

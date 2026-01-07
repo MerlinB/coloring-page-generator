@@ -6,16 +6,17 @@
   <ImageViewer imageData={null} prompt={null} />
 -->
 <script lang="ts">
-  import { Image, Download, Printer, Maximize2 } from "@lucide/svelte"
+  import { Image, Download, Printer, Maximize2, Pencil } from "@lucide/svelte"
   import { printImage as doPrint } from "$lib/utils/print"
 
   interface Props {
     imageData: string | null
     prompt: string | null
     onexpand?: () => void
+    onedit?: () => void
   }
 
-  let { imageData, prompt, onexpand }: Props = $props()
+  let { imageData, prompt, onexpand, onedit }: Props = $props()
 
   let imageEl: HTMLImageElement | undefined = $state()
 
@@ -76,6 +77,17 @@
       </p>
 
       <div class="flex shrink-0 justify-center gap-3">
+        {#if onedit}
+          <button
+            type="button"
+            onclick={() => onedit()}
+            class="flex items-center gap-2 rounded-full border-2 border-lavender-200 bg-lavender-50 px-5 py-2.5 font-bold text-lavender-700 transition-transform hover:scale-105 active:scale-[0.98]"
+          >
+            <Pencil class="h-5 w-5" />
+            Edit
+          </button>
+        {/if}
+
         <button
           type="button"
           onclick={() => downloadImage()}

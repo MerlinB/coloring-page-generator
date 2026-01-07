@@ -1,10 +1,10 @@
 import { fail } from "@sveltejs/kit"
-import { generateColoringPage } from "$lib/server/gemini"
+import { generateColoringPage, editColoringPage } from "$lib/server/gemini"
 import type { Actions } from "./$types"
 import type { PageFormat } from "$lib/types"
 
 export const actions: Actions = {
-  default: async ({ request }) => {
+  generate: async ({ request }) => {
     const formData = await request.formData()
     const prompt = formData.get("prompt")
     const kidFriendly = formData.get("kidFriendly") === "on"
@@ -37,7 +37,11 @@ export const actions: Actions = {
     }
 
     try {
-      const result = await generateColoringPage(trimmedPrompt, kidFriendly, format)
+      const result = await generateColoringPage(
+        trimmedPrompt,
+        kidFriendly,
+        format,
+      )
 
       if (!result.success || !result.imageData) {
         return fail(500, {
@@ -63,6 +67,87 @@ export const actions: Actions = {
       return fail(500, {
         error: "Oops! Something went wrong. Please try again!",
         prompt: trimmedPrompt,
+      })
+    }
+  },
+
+  edit: async ({ request }) => {
+    const formData = await request.formData()
+    const editPrompt = formData.get("editPrompt")
+    const sourceImageData = formData.get("sourceImageData")
+    const sourceImageId = formData.get("sourceImageId")
+    const sourcePrompt = formData.get("sourcePrompt")
+    const formatValue = formData.get("format")
+    const format: PageFormat =
+      formatValue === "landscape" ? "landscape" : "portrait"
+
+    if (!editPrompt || typeof editPrompt !== "string") {
+      return fail(400, {
+        error: "Please describe how you want to edit the image!",
+        editPrompt: "",
+      })
+    }
+
+    if (!sourceImageData || typeof sourceImageData !== "string") {
+      return fail(400, {
+        error: "No source image provided for editing",
+        editPrompt,
+      })
+    }
+
+    const trimmedEditPrompt = editPrompt.trim()
+
+    if (trimmedEditPrompt.length === 0) {
+      return fail(400, {
+        error: "Please describe your edit!",
+        editPrompt: "",
+      })
+    }
+
+    if (trimmedEditPrompt.length > 200) {
+      return fail(400, {
+        error:
+          "Edit description too long! Please keep it under 200 characters.",
+        editPrompt: trimmedEditPrompt,
+      })
+    }
+
+    try {
+      const result = await editColoringPage(
+        sourceImageData,
+        trimmedEditPrompt,
+        false,
+        format,
+      )
+
+      if (!result.success || !result.imageData) {
+        return fail(500, {
+          error:
+            result.error ??
+            "Could not edit your coloring page. Please try again!",
+          editPrompt: trimmedEditPrompt,
+        })
+      }
+
+      const combinedPrompt = `${sourcePrompt} (edited: ${trimmedEditPrompt})`
+
+      return {
+        success: true,
+        image: {
+          id: crypto.randomUUID(),
+          prompt: combinedPrompt,
+          imageData: result.imageData,
+          createdAt: new Date().toISOString(),
+          format,
+          sourceImageId: sourceImageId as string,
+          editPrompt: trimmedEditPrompt,
+        },
+      }
+    } catch (err) {
+      console.error("Edit error:", err)
+      return fail(500, {
+        error: "Oops! Something went wrong. Please try again!",
+        editPrompt: trimmedEditPrompt,
       })
     }
   },

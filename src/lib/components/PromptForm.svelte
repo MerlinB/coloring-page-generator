@@ -5,7 +5,11 @@
   <PromptForm disabled={isLoading} />
 -->
 <script lang="ts">
-  import { WandSparkles, RectangleVertical, RectangleHorizontal } from "@lucide/svelte"
+  import {
+    WandSparkles,
+    RectangleVertical,
+    RectangleHorizontal,
+  } from "@lucide/svelte"
   import SuggestionChips from "./SuggestionChips.svelte"
   import type { PageFormat } from "$lib/types"
 

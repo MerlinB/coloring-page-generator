@@ -24,6 +24,18 @@ const KID_FRIENDLY_ADDITIONS = `
 - Simple shapes suitable for young children
 - Medium level of detail - not too intricate`
 
+const EDIT_BASE_PROMPT = `Edit this coloring page illustration based on the instruction below.
+
+Requirements:
+- Keep it as black line art on pure white background
+- Maintain clean, bold outlines (like a coloring book)
+- No filled areas, shading, or gradients
+- Ensure clear, distinct shapes that are easy to color inside the lines
+
+Style: Traditional coloring book line drawing
+
+Edit instruction:`
+
 export async function generateColoringPage(
   userPrompt: string,
   kidFriendly: boolean = false,
@@ -69,6 +81,60 @@ Subject: ${userPrompt}`
     return {
       success: false,
       error: error instanceof Error ? error.message : "API request failed",
+    }
+  }
+}
+
+export async function editColoringPage(
+  originalImageData: string,
+  editPrompt: string,
+  kidFriendly: boolean = false,
+  format: PageFormat = "portrait",
+): Promise<GenerationResult> {
+  try {
+    const prompt = kidFriendly
+      ? `${EDIT_BASE_PROMPT} ${editPrompt}${KID_FRIENDLY_ADDITIONS}`
+      : `${EDIT_BASE_PROMPT} ${editPrompt}`
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3-pro-image-preview",
+      contents: [
+        {
+          inlineData: {
+            mimeType: "image/png",
+            data: originalImageData,
+          },
+        },
+        { text: prompt },
+      ],
+      config: {
+        responseModalities: ["TEXT", "IMAGE"],
+        imageConfig: {
+          aspectRatio: FORMAT_TO_ASPECT_RATIO[format],
+        },
+      },
+    })
+
+    const candidate = response.candidates?.[0]
+    if (!candidate?.content?.parts) {
+      return { success: false, error: "No edited image was generated" }
+    }
+
+    for (const part of candidate.content.parts) {
+      if (part.inlineData?.data) {
+        return {
+          success: true,
+          imageData: part.inlineData.data,
+        }
+      }
+    }
+
+    return { success: false, error: "No image data in response" }
+  } catch (error) {
+    console.error("Gemini edit API error:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Edit request failed",
     }
   }
 }

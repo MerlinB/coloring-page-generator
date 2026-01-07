@@ -45,7 +45,7 @@
 
   /* Gold - Secondary scale (warm analogous tone) */
   --gold-50: oklch(0.94 0.06 92);
-  --gold-100: oklch(0.88 0.10 92);
+  --gold-100: oklch(0.88 0.1 92);
   --gold-200: oklch(0.82 0.12 92);
   --gold-300: oklch(0.76 0.14 92);
   --gold-400: oklch(0.72 0.15 92);
@@ -53,7 +53,7 @@
   --gold-600: oklch(0.55 0.13 92);
   --gold-700: oklch(0.45 0.11 92);
   --gold-800: oklch(0.38 0.09 92);
-  --gold-900: oklch(0.30 0.07 92);
+  --gold-900: oklch(0.3 0.07 92);
 
   /* Lavender - Accent scale (for chips, highlights) */
   --lavender-50: oklch(0.97 0.02 290);
@@ -80,7 +80,7 @@
   --primary: oklch(0.65 0.16 18);
   --primary-foreground: oklch(0.99 0 0);
 
-  --secondary: oklch(0.88 0.10 92);
+  --secondary: oklch(0.88 0.1 92);
   --secondary-foreground: oklch(0.35 0.11 92);
 
   --muted: oklch(0.97 0.01 25);

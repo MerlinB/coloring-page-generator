@@ -7,11 +7,18 @@
   import LoadingSpinner from "$lib/components/LoadingSpinner.svelte"
   import ErrorMessage from "$lib/components/ErrorMessage.svelte"
   import Lightbox from "$lib/components/Lightbox.svelte"
+  import EditPromptModal from "$lib/components/EditPromptModal.svelte"
   import type { ActionData } from "./$types"
+  import type { GalleryImage } from "$lib/types"
 
   // Lightbox state
   let lightboxOpen = $state(false)
   let lightboxIndex = $state(0)
+
+  // Edit modal state
+  let editModalOpen = $state(false)
+  let imageToEdit = $state<GalleryImage | null>(null)
+  let isEditing = $state(false)
 
   function openLightbox(index: number) {
     lightboxIndex = index
@@ -21,7 +28,7 @@
   function openLightboxForCurrentImage() {
     if (!gallery.currentImage) return
     const index = gallery.images.findIndex(
-      (img) => img.id === gallery.currentImage?.id
+      (img) => img.id === gallery.currentImage?.id,
     )
     if (index >= 0) {
       openLightbox(index)
@@ -38,6 +45,37 @@
     }
   }
 
+  // Edit modal functions
+  function openEditModal(image: GalleryImage) {
+    imageToEdit = image
+    editModalOpen = true
+    // Close lightbox if open
+    lightboxOpen = false
+  }
+
+  function closeEditModal() {
+    editModalOpen = false
+    imageToEdit = null
+  }
+
+  function openEditModalForCurrentImage() {
+    if (gallery.currentImage) {
+      openEditModal(gallery.currentImage)
+    }
+  }
+
+  function handleEditSubmit(editPrompt: string) {
+    if (!imageToEdit) return
+
+    // Set hidden form values and submit
+    const form = document.getElementById("edit-form") as HTMLFormElement
+    const editPromptInput = document.getElementById(
+      "edit-prompt-input",
+    ) as HTMLInputElement
+
+    editPromptInput.value = editPrompt
+    form.requestSubmit()
+  }
 </script>
 
 <svelte:head>
@@ -60,10 +98,10 @@
 
   <!-- Split Panel Layout: Form (left) + Image (right) on desktop -->
   <div
-    class="mx-auto max-w-2xl space-y-6 lg:max-w-7xl lg:grid lg:grid-cols-[400px_1fr] lg:gap-8 lg:space-y-0 xl:grid-cols-[420px_1fr]"
+    class="mx-auto max-w-2xl space-y-6 lg:grid lg:max-w-7xl lg:grid-cols-[400px_1fr] lg:gap-8 lg:space-y-0 xl:grid-cols-[420px_1fr]"
   >
     <!-- Left Panel: Form + Error -->
-    <div class="order-2 space-y-6 lg:order-1 lg:sticky lg:top-8 lg:self-start">
+    <div class="order-2 space-y-6 lg:sticky lg:top-8 lg:order-1 lg:self-start">
       <!-- Error Display -->
       {#if gallery.error}
         <ErrorMessage
@@ -76,6 +114,7 @@
       <section class="rounded-3xl bg-card p-6 shadow-lg">
         <form
           method="POST"
+          action="?/generate"
           use:enhance={() => {
             gallery.setGenerating(true)
             gallery.clearError()
@@ -120,6 +159,7 @@
           imageData={gallery.currentImage?.imageData ?? null}
           prompt={gallery.currentImage?.prompt ?? null}
           onexpand={() => openLightboxForCurrentImage()}
+          onedit={() => openEditModalForCurrentImage()}
         />
       {/if}
     </div>
@@ -136,6 +176,7 @@
         onselect={(image) => gallery.setCurrentImage(image)}
         onlightbox={(index) => openLightbox(index)}
         ondelete={(id) => gallery.removeImage(id)}
+        onedit={(image) => openEditModal(image)}
       />
     </section>
   {/if}
@@ -153,5 +194,63 @@
     onclose={() => closeLightbox()}
     onnavigate={(index) => navigateLightbox(index)}
     ondelete={(id) => gallery.removeImage(id)}
+    onedit={(image) => openEditModal(image)}
   />
 {/if}
+
+<!-- Hidden edit form -->
+<form
+  id="edit-form"
+  method="POST"
+  action="?/edit"
+  class="hidden"
+  use:enhance={() => {
+    isEditing = true
+    gallery.clearError()
+
+    return async ({ result, update }) => {
+      if (result.type === "success") {
+        const data = result.data as ActionData
+        if (data?.success && data.image) {
+          gallery.addImage({
+            ...data.image,
+            createdAt: new Date(data.image.createdAt),
+          })
+          closeEditModal()
+        } else if (data?.error) {
+          gallery.setError(data.error)
+        }
+      } else if (result.type === "failure") {
+        const data = result.data as ActionData
+        gallery.setError(data?.error ?? "Edit failed")
+      } else if (result.type === "error") {
+        gallery.setError("An unexpected error occurred")
+      }
+      isEditing = false
+      await update({ reset: false })
+    }
+  }}
+>
+  <input
+    type="hidden"
+    name="sourceImageData"
+    value={imageToEdit?.imageData ?? ""}
+  />
+  <input type="hidden" name="sourceImageId" value={imageToEdit?.id ?? ""} />
+  <input type="hidden" name="sourcePrompt" value={imageToEdit?.prompt ?? ""} />
+  <input
+    type="hidden"
+    name="format"
+    value={imageToEdit?.format ?? "portrait"}
+  />
+  <input type="hidden" name="editPrompt" id="edit-prompt-input" value="" />
+</form>
+
+<!-- Edit modal -->
+<EditPromptModal
+  open={editModalOpen}
+  image={imageToEdit}
+  disabled={isEditing}
+  onsubmit={(editPrompt) => handleEditSubmit(editPrompt)}
+  onclose={() => closeEditModal()}
+/>
