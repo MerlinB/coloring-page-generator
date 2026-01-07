@@ -24,7 +24,7 @@
       style="animation-delay: 0ms;"
     ></div>
     <div
-      class="h-4 w-4 animate-bounce rounded-full bg-mint-500"
+      class="h-4 w-4 animate-bounce rounded-full bg-gold-500"
       style="animation-delay: 150ms;"
     ></div>
     <div

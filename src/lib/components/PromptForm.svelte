@@ -72,7 +72,7 @@
         class="flex flex-col items-center gap-1 rounded-xl px-4 py-3 transition-all disabled:opacity-50 {selectedFormat ===
         'portrait'
           ? 'bg-coral-100 text-coral-700 ring-2 ring-coral-400'
-          : 'bg-mint-50 text-mint-600 hover:bg-mint-100'}"
+          : 'bg-gold-50 text-gold-600 hover:bg-gold-100'}"
         aria-pressed={selectedFormat === "portrait"}
       >
         <RectangleVertical class="h-8 w-6" strokeWidth={2} />
@@ -86,7 +86,7 @@
         class="flex flex-col items-center gap-1 rounded-xl px-4 py-3 transition-all disabled:opacity-50 {selectedFormat ===
         'landscape'
           ? 'bg-coral-100 text-coral-700 ring-2 ring-coral-400'
-          : 'bg-mint-50 text-mint-600 hover:bg-mint-100'}"
+          : 'bg-gold-50 text-gold-600 hover:bg-gold-100'}"
         aria-pressed={selectedFormat === "landscape"}
       >
         <RectangleHorizontal class="h-6 w-8" strokeWidth={2} />
@@ -96,7 +96,7 @@
   </div>
 
   <label
-    class="flex cursor-pointer items-center gap-3 rounded-xl bg-mint-50 p-3 transition-colors hover:bg-mint-100"
+    class="flex cursor-pointer items-center gap-3 rounded-xl bg-gold-50 p-3 transition-colors hover:bg-gold-100"
   >
     <input
       type="checkbox"
@@ -104,7 +104,7 @@
       {disabled}
       class="h-5 w-5 rounded border-coral-300 text-coral-500 focus:ring-coral-400"
     />
-    <span class="text-mint-700">Kid-friendly (simpler, age-appropriate)</span>
+    <span class="text-gold-700">Kid-friendly (simpler, age-appropriate)</span>
   </label>
 
   <button

@@ -58,7 +58,7 @@ This project has a playful, child-friendly design system targeting kids and pare
 | **Heading Font**  | Nunito (rounded sans-serif)                      |
 | **Body Font**     | DM Sans                                          |
 | **Primary Color** | Coral (`--color-coral-*`)                        |
-| **Secondary**     | Mint (`--color-mint-*`)                          |
+| **Secondary**     | Gold (`--color-gold-*`)                          |
 | **Accent**        | Lavender (`--color-lavender-*`)                  |
 | **Border Radius** | Moderate (8-12px base)                           |
 | **Shadows**       | Soft, warm-tinted for gentle depth               |
@@ -109,7 +109,7 @@ Design tokens are defined in `src/routes/layout.css` following the shadcn patter
 }
 ```
 
-**Note:** Brand colors (coral, mint, lavender) are in `:root` and bridged via `@theme inline`, so they're available both as `var(--coral-500)` and `bg-coral-500`.
+**Note:** Brand colors (coral, gold, lavender) are in `:root` and bridged via `@theme inline`, so they're available both as `var(--coral-500)` and `bg-coral-500`.
 
 ### Semantic Color Tokens
 
@@ -130,7 +130,7 @@ Design tokens are defined in `src/routes/layout.css` following the shadcn patter
 Three complete color scales are available for fine-grained control:
 
 - **Coral** (`coral-50` to `coral-950`): Primary warm accent
-- **Mint** (`mint-50` to `mint-900`): Secondary cool complement
+- **Gold** (`gold-50` to `gold-900`): Secondary warm complement
 - **Lavender** (`lavender-50` to `lavender-900`): Accent for chips, highlights
 
 Example usage:
@@ -139,7 +139,7 @@ Example usage:
 <button class="bg-coral-500 text-white hover:bg-coral-600">
   Primary Button
 </button>
-<div class="bg-mint-100 text-mint-800">Secondary container</div>
+<div class="bg-gold-100 text-gold-800">Secondary container</div>
 <span class="bg-lavender-50 text-lavender-600">Suggestion chip</span>
 ```
 

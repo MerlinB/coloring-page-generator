@@ -88,7 +88,7 @@
         <button
           type="button"
           onclick={() => printImage()}
-          class="flex items-center gap-2 rounded-full border-2 border-coral-200 bg-secondary px-5 py-2.5 font-bold text-secondary-foreground transition-transform hover:scale-105 active:scale-[0.98]"
+          class="flex items-center gap-2 rounded-full border-2 border-gold-200 bg-secondary px-5 py-2.5 font-bold text-secondary-foreground transition-transform hover:scale-105 active:scale-[0.98]"
         >
           <Printer class="h-5 w-5" />
           Print

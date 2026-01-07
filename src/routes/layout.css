@@ -43,17 +43,17 @@
   --coral-900: oklch(0.32 0.08 13);
   --coral-950: oklch(0.25 0.06 12);
 
-  /* Mint - Secondary scale (complementary cool tone) */
-  --mint-50: oklch(0.98 0.02 165);
-  --mint-100: oklch(0.95 0.04 165);
-  --mint-200: oklch(0.9 0.06 165);
-  --mint-300: oklch(0.82 0.1 165);
-  --mint-400: oklch(0.72 0.12 165);
-  --mint-500: oklch(0.62 0.14 165);
-  --mint-600: oklch(0.52 0.12 165);
-  --mint-700: oklch(0.44 0.1 165);
-  --mint-800: oklch(0.36 0.08 165);
-  --mint-900: oklch(0.28 0.06 165);
+  /* Gold - Secondary scale (warm analogous tone) */
+  --gold-50: oklch(0.94 0.06 92);
+  --gold-100: oklch(0.88 0.10 92);
+  --gold-200: oklch(0.82 0.12 92);
+  --gold-300: oklch(0.76 0.14 92);
+  --gold-400: oklch(0.72 0.15 92);
+  --gold-500: oklch(0.65 0.15 92);
+  --gold-600: oklch(0.55 0.13 92);
+  --gold-700: oklch(0.45 0.11 92);
+  --gold-800: oklch(0.38 0.09 92);
+  --gold-900: oklch(0.30 0.07 92);
 
   /* Lavender - Accent scale (for chips, highlights) */
   --lavender-50: oklch(0.97 0.02 290);
@@ -80,8 +80,8 @@
   --primary: oklch(0.65 0.16 18);
   --primary-foreground: oklch(0.99 0 0);
 
-  --secondary: oklch(0.95 0.04 165);
-  --secondary-foreground: oklch(0.35 0.1 165);
+  --secondary: oklch(0.88 0.10 92);
+  --secondary-foreground: oklch(0.35 0.11 92);
 
   --muted: oklch(0.97 0.01 25);
   --muted-foreground: oklch(0.55 0.02 20);
@@ -133,17 +133,17 @@
   --color-coral-900: var(--coral-900);
   --color-coral-950: var(--coral-950);
 
-  /* Brand colors - mint scale */
-  --color-mint-50: var(--mint-50);
-  --color-mint-100: var(--mint-100);
-  --color-mint-200: var(--mint-200);
-  --color-mint-300: var(--mint-300);
-  --color-mint-400: var(--mint-400);
-  --color-mint-500: var(--mint-500);
-  --color-mint-600: var(--mint-600);
-  --color-mint-700: var(--mint-700);
-  --color-mint-800: var(--mint-800);
-  --color-mint-900: var(--mint-900);
+  /* Brand colors - gold scale */
+  --color-gold-50: var(--gold-50);
+  --color-gold-100: var(--gold-100);
+  --color-gold-200: var(--gold-200);
+  --color-gold-300: var(--gold-300);
+  --color-gold-400: var(--gold-400);
+  --color-gold-500: var(--gold-500);
+  --color-gold-600: var(--gold-600);
+  --color-gold-700: var(--gold-700);
+  --color-gold-800: var(--gold-800);
+  --color-gold-900: var(--gold-900);
 
   /* Brand colors - lavender scale */
   --color-lavender-50: var(--lavender-50);
