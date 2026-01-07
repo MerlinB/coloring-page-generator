@@ -18,7 +18,6 @@
   // Edit modal state
   let editModalOpen = $state(false)
   let imageToEdit = $state<GalleryImage | null>(null)
-  let isEditing = $state(false)
 
   function openLightbox(index: number) {
     lightboxIndex = index
@@ -74,6 +73,9 @@
     ) as HTMLInputElement
 
     editPromptInput.value = editPrompt
+
+    // Close modal immediately and show main loader
+    closeEditModal()
     form.requestSubmit()
   }
 </script>
@@ -205,7 +207,7 @@
   action="?/edit"
   class="hidden"
   use:enhance={() => {
-    isEditing = true
+    gallery.setGenerating(true)
     gallery.clearError()
 
     return async ({ result, update }) => {
@@ -216,7 +218,6 @@
             ...data.image,
             createdAt: new Date(data.image.createdAt),
           })
-          closeEditModal()
         } else if (data?.error) {
           gallery.setError(data.error)
         }
@@ -226,7 +227,7 @@
       } else if (result.type === "error") {
         gallery.setError("An unexpected error occurred")
       }
-      isEditing = false
+      gallery.setGenerating(false)
       await update({ reset: false })
     }
   }}
@@ -250,7 +251,6 @@
 <EditPromptModal
   open={editModalOpen}
   image={imageToEdit}
-  disabled={isEditing}
   onsubmit={(editPrompt) => handleEditSubmit(editPrompt)}
   onclose={() => closeEditModal()}
 />
