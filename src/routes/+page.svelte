@@ -81,7 +81,7 @@
 </script>
 
 <svelte:head>
-  <title>Coloring Pages Generator</title>
+  <title>Coloring Page Generator</title>
   <meta
     name="description"
     content="Create fun coloring pages for children with AI"
@@ -89,12 +89,14 @@
 </svelte:head>
 
 <main class="min-h-screen bg-background px-4 py-8">
-  <header class="mx-auto mb-8 max-w-7xl text-center lg:text-left">
-    <h1 class="font-display text-4xl font-bold text-coral-700 sm:text-5xl">
-      Magic Coloring Pages!
+  <header class="mx-auto mb-12 max-w-7xl text-center">
+    <h1
+      class="font-display text-4xl font-bold tracking-tight text-coral-700 sm:text-5xl lg:text-6xl"
+    >
+      Coloring Page Generator
     </h1>
-    <p class="mt-2 text-lg text-muted-foreground">
-      Tell us what you want to color!
+    <p class="mx-auto mt-4 max-w-lg text-lg text-muted-foreground sm:text-xl">
+      Create magical coloring pages in seconds
     </p>
   </header>
 
