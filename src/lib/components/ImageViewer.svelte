@@ -34,79 +34,82 @@
 </script>
 
 {#if imageData && prompt}
-  <div class="group relative overflow-hidden rounded-3xl bg-white shadow-lg">
-    <!-- Clickable image -->
-    {#if onexpand}
-      <button
-        type="button"
-        onclick={() => onexpand()}
-        class="block w-full cursor-zoom-in"
-        aria-label="View full size"
-      >
+  <div class="overflow-hidden rounded-3xl bg-white p-3 shadow-lg">
+    <!-- Image container with floating buttons -->
+    <div class="group relative overflow-hidden rounded-2xl">
+      <!-- Clickable image -->
+      {#if onexpand}
+        <button
+          type="button"
+          onclick={() => onexpand()}
+          class="block w-full cursor-zoom-in"
+          aria-label="View full size"
+        >
+          <img
+            bind:this={imageEl}
+            src="data:image/png;base64,{imageData}"
+            alt="Coloring page: {prompt}"
+            class="h-auto w-full"
+          />
+        </button>
+      {:else}
         <img
           bind:this={imageEl}
           src="data:image/png;base64,{imageData}"
           alt="Coloring page: {prompt}"
           class="h-auto w-full"
         />
-      </button>
-    {:else}
-      <img
-        bind:this={imageEl}
-        src="data:image/png;base64,{imageData}"
-        alt="Coloring page: {prompt}"
-        class="h-auto w-full"
-      />
-    {/if}
+      {/if}
 
-    <!-- Expand hint (top right) -->
-    {#if onexpand}
-      <div
-        class="pointer-events-none absolute top-3 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 text-coral-600 opacity-0 shadow-md transition-opacity group-hover:opacity-100"
-      >
-        <Maximize2 class="h-5 w-5" />
-      </div>
-    {/if}
+      <!-- Expand hint (top right) -->
+      {#if onexpand}
+        <div
+          class="pointer-events-none absolute top-3 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 text-coral-600 opacity-0 shadow-md transition-opacity group-hover:opacity-100"
+        >
+          <Maximize2 class="h-5 w-5" />
+        </div>
+      {/if}
 
-    <!-- Bottom bar with solid background -->
-    <div
-      class="absolute inset-x-0 bottom-0 flex flex-col gap-3 bg-white/95 p-4 backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between"
-    >
-      <p class="text-center font-display text-base text-coral-700 sm:text-left">
-        "{prompt}"
-      </p>
-
-      <div class="flex shrink-0 justify-center gap-3">
+      <!-- Action buttons (bottom right, floating individually) -->
+      <div class="absolute bottom-3 right-3 flex gap-2">
         {#if onedit}
           <button
             type="button"
+            title="Edit"
             onclick={() => onedit()}
-            class="flex items-center gap-2 rounded-full border-2 border-lavender-200 bg-lavender-50 px-5 py-2.5 font-bold text-lavender-700 transition-transform hover:scale-105 active:scale-[0.98]"
+            class="flex h-10 w-10 items-center justify-center rounded-full border-2 border-lavender-200 bg-lavender-50 text-lavender-700 shadow-md backdrop-blur-sm transition-transform hover:scale-105 active:scale-[0.98] sm:h-auto sm:w-auto sm:gap-2 sm:px-4 sm:py-2"
           >
             <Pencil class="h-5 w-5" />
-            Edit
+            <span class="hidden font-bold sm:inline">Edit</span>
           </button>
         {/if}
 
         <button
           type="button"
+          title="Download"
           onclick={() => downloadImage()}
-          class="flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 font-bold text-primary-foreground transition-transform hover:scale-105 active:scale-[0.98]"
+          class="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md backdrop-blur-sm transition-transform hover:scale-105 active:scale-[0.98] sm:h-auto sm:w-auto sm:gap-2 sm:px-4 sm:py-2"
         >
           <Download class="h-5 w-5" />
-          Download
+          <span class="hidden font-bold sm:inline">Download</span>
         </button>
 
         <button
           type="button"
+          title="Print"
           onclick={() => printImage()}
-          class="flex items-center gap-2 rounded-full border-2 border-gold-200 bg-secondary px-5 py-2.5 font-bold text-secondary-foreground transition-transform hover:scale-105 active:scale-[0.98]"
+          class="flex h-10 w-10 items-center justify-center rounded-full border-2 border-gold-200 bg-secondary text-secondary-foreground shadow-md backdrop-blur-sm transition-transform hover:scale-105 active:scale-[0.98] sm:h-auto sm:w-auto sm:gap-2 sm:py-2 sm:px-4"
         >
           <Printer class="h-5 w-5" />
-          Print
+          <span class="hidden font-bold sm:inline">Print</span>
         </button>
       </div>
     </div>
+
+    <!-- Title below image -->
+    <p class="mt-3 line-clamp-2 text-center font-display text-lg text-coral-700 sm:text-left">
+      "{prompt}"
+    </p>
   </div>
 {:else}
   <div
