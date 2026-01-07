@@ -99,8 +99,9 @@
     </div>
   </div>
 
+  <!-- Hidden for now - images are generally good enough without this option -->
   <label
-    class="flex cursor-pointer items-center gap-3 rounded-xl bg-gold-50 p-3 transition-colors hover:bg-gold-100"
+    class="hidden cursor-pointer items-center gap-3 rounded-xl bg-gold-50 p-3 transition-colors hover:bg-gold-100"
   >
     <input
       type="checkbox"
