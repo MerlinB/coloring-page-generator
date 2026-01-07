@@ -154,7 +154,7 @@
           bind:this={inputEl}
           bind:value={editPrompt}
           placeholder="e.g., Add a butterfly, make lines thicker"
-          maxlength="200"
+          maxlength="2000"
           {disabled}
           onkeydown={(e) => {
             if (e.key === "Enter" && !disabled && editPrompt.trim()) {
@@ -163,9 +163,6 @@
           }}
           class="w-full rounded-xl border-2 border-coral-200 bg-background p-3 text-foreground placeholder-muted-foreground transition-colors focus:border-coral-400 focus:outline-none disabled:opacity-50"
         />
-        <p class="text-right text-xs text-muted-foreground">
-          {editPrompt.length}/200
-        </p>
 
         <!-- Quick suggestions -->
         <div class="flex flex-wrap gap-2">

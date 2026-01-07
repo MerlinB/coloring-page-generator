@@ -51,13 +51,10 @@
       bind:value={inputValue}
       placeholder="e.g., A happy elephant playing in the jungle"
       required
-      maxlength="200"
+      maxlength="2000"
       {disabled}
       class="w-full rounded-2xl border-2 border-coral-200 bg-card p-4 text-lg text-foreground placeholder-muted-foreground transition-colors focus:border-coral-400 focus:outline-none disabled:bg-muted disabled:opacity-50"
     />
-    <p class="mt-1 text-right text-sm text-muted-foreground">
-      {inputValue.length}/200
-    </p>
   </div>
 
   <SuggestionChips {suggestions} onselect={useSuggestion} {disabled} />
