@@ -12,6 +12,9 @@ pnpm check        # Type-check with svelte-check
 pnpm check:watch  # Type-check in watch mode
 pnpm lint         # Run prettier and eslint checks
 pnpm format       # Format code with prettier
+pnpm db:generate  # Generate Drizzle migrations
+pnpm db:migrate   # Run Drizzle migrations
+pnpm db:studio    # Open Drizzle Studio
 ```
 
 ## Architecture
@@ -20,19 +23,23 @@ This is a coloring page generator web app using SvelteKit and Google's Gemini im
 
 ### Data Flow
 
-1. User submits a prompt via form action in `+page.svelte`
-2. Server action (`+page.server.ts`) validates input and calls `generateColoringPage()`
-3. `$lib/server/gemini.ts` constructs prompts with coloring book requirements and calls Gemini API
-4. Generated image (base64) is returned to client and stored in gallery store
-5. Gallery store (`$lib/stores/gallery.svelte.ts`) manages state using Svelte 5 runes
-6. Images are persisted to IndexedDB (`$lib/db/`) and synced across browser tabs via BroadcastChannel
+1. User submits prompt via `+page.svelte`, calls `/api/generate` endpoint
+2. Server checks usage (free tier or token balance) via `$lib/server/services/usage.ts`
+3. `$lib/server/gemini.ts` constructs prompts and calls Gemini API
+4. Generated image (base64) returned to client, stored in gallery store
+5. Usage consumed after successful generation
+6. Gallery persisted to IndexedDB, synced across tabs via BroadcastChannel
 
 ### Key Files
 
-- `src/lib/server/gemini.ts` - Gemini API integration, prompt engineering for coloring pages
-- `src/lib/stores/gallery.svelte.ts` - Client-side state management (images, loading, errors)
-- `src/lib/db/` - IndexedDB persistence and cross-tab sync (via `idb` library)
-- `src/lib/types.ts` - TypeScript interfaces (`GalleryImage`, `GenerationResult`)
+- `src/lib/server/gemini.ts` - Gemini API integration, prompt engineering
+- `src/lib/server/db/` - Drizzle schema and Neon connection
+- `src/lib/server/services/usage.ts` - Free tier and token balance logic
+- `src/lib/server/services/codes.ts` - Redemption code generation (COLOR-XXXX-XXXX)
+- `src/lib/server/stripe.ts` - Stripe client and price configuration
+- `src/lib/stores/usage.svelte.ts` - Client-side usage state with cross-tab sync
+- `src/lib/stores/gallery.svelte.ts` - Client-side image gallery state
+- `src/routes/api/` - API endpoints (generate, checkout, redeem, usage, webhooks)
 
 ### Components
 
@@ -169,7 +176,12 @@ Example usage:
 
 ## Environment
 
-Requires `GEMINI_API_KEY` in `.env` file. Uses the `gemini-3-pro-image-preview` model.
+Required in `.env`:
+- `GEMINI_API_KEY` - Google Gemini API key
+- `DATABASE_URL` - Neon PostgreSQL connection string
+- `STRIPE_SECRET_KEY` - Stripe secret key
+- `STRIPE_WEBHOOK_SECRET` - Stripe webhook signing secret
+- `PUBLIC_STRIPE_PUBLISHABLE_KEY` - Stripe publishable key
 
 ## Important Conventions
 
