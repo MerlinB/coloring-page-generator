@@ -9,6 +9,9 @@ const FORMAT_TO_ASPECT_RATIO: Record<PageFormat, string> = {
 
 const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY })
 
+// const MODEL = "gemini-3-pro-image-preview"
+const MODEL = "gemini-2.5-flash-image"
+
 const BASE_PROMPT = `Create a coloring page illustration.
 
 Requirements:
@@ -51,7 +54,7 @@ export async function generateColoringPage(
 Subject: ${userPrompt}`
 
     const response = await ai.models.generateContent({
-      model: "gemini-3-pro-image-preview",
+      model: MODEL,
       contents: enhancedPrompt,
       config: {
         responseModalities: ["TEXT", "IMAGE"],
@@ -97,15 +100,15 @@ export async function editColoringPage(
       : `${EDIT_BASE_PROMPT} ${editPrompt}`
 
     const response = await ai.models.generateContent({
-      model: "gemini-3-pro-image-preview",
+      model: MODEL,
       contents: [
+        { text: prompt },
         {
           inlineData: {
             mimeType: "image/png",
             data: originalImageData,
           },
         },
-        { text: prompt },
       ],
       config: {
         responseModalities: ["TEXT", "IMAGE"],
