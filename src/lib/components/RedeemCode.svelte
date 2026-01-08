@@ -80,7 +80,7 @@
 			}
 
 			success = true;
-			usageStore.setTokenBalance(data.totalBalance, data.code);
+			usageStore.setTokenBalance(data.totalBalance, data.code, data.activeCodes ?? []);
 			onsuccess?.(data.totalBalance);
 		} catch {
 			error = 'Something went wrong. Please try again.';

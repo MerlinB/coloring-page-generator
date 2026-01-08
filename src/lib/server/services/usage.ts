@@ -1,14 +1,21 @@
 import { db, devices, redemptionCodes, generations } from '$lib/server/db';
-import { eq, and, isNull, desc, sql } from 'drizzle-orm';
+import { eq, and, isNull, desc, sql, gt } from 'drizzle-orm';
 
 const FREE_TIER_LIMIT = 3;
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+export interface CodeBalance {
+	code: string;
+	remainingTokens: number;
+}
 
 export interface UsageData {
 	freeRemaining: number;
 	tokenBalance: number;
 	weekResetDate: string | null;
 	activeCode: string | null;
+	/** Breakdown of all active codes with their balances */
+	activeCodes: CodeBalance[];
 }
 
 /**
@@ -52,8 +59,8 @@ export async function getUsageForDevice(fingerprint: string): Promise<UsageData>
 		device = updated;
 	}
 
-	// Get active redemption code balance (most recently redeemed, activated, not invalidated)
-	const activeCode = await db.query.redemptionCodes.findFirst({
+	// Get ALL active redemption codes and sum their balances
+	const activeCodes = await db.query.redemptionCodes.findMany({
 		where: and(
 			eq(redemptionCodes.redeemedByFingerprint, fingerprint),
 			eq(redemptionCodes.status, 'active'),
@@ -62,18 +69,26 @@ export async function getUsageForDevice(fingerprint: string): Promise<UsageData>
 		orderBy: desc(redemptionCodes.redeemedAt)
 	});
 
-	const tokenBalance = activeCode?.remainingTokens ?? 0;
+	const tokenBalance = activeCodes.reduce((sum, code) => sum + code.remainingTokens, 0);
+	// For activeCode display, show the most recent one (first in array due to ordering)
+	const mostRecentCode = activeCodes[0] ?? null;
 	const freeRemaining = Math.max(0, FREE_TIER_LIMIT - device.usageCount);
 
 	// Calculate next reset
 	const nextReset = new Date(weekStart.getTime() + WEEK_MS);
+
+	// Build codes breakdown (only include codes with remaining tokens)
+	const codesBreakdown: CodeBalance[] = activeCodes
+		.filter((c) => c.remainingTokens > 0)
+		.map((c) => ({ code: c.code, remainingTokens: c.remainingTokens }));
 
 	return {
 		// Tokens replace free tier - if user has tokens, free tier shows 0
 		freeRemaining: tokenBalance > 0 ? 0 : freeRemaining,
 		tokenBalance,
 		weekResetDate: tokenBalance > 0 ? null : nextReset.toISOString(),
-		activeCode: activeCode?.code ?? null
+		activeCode: mostRecentCode?.code ?? null,
+		activeCodes: codesBreakdown
 	};
 }
 
@@ -88,17 +103,18 @@ export async function consumeGeneration(
 	const usage = await getUsageForDevice(fingerprint);
 
 	if (usage.tokenBalance > 0) {
-		// Consume from token balance (only active codes)
+		// Find a code with remaining tokens (prefer most recent)
 		const activeCode = await db.query.redemptionCodes.findFirst({
 			where: and(
 				eq(redemptionCodes.redeemedByFingerprint, fingerprint),
 				eq(redemptionCodes.status, 'active'),
-				isNull(redemptionCodes.invalidatedAt)
+				isNull(redemptionCodes.invalidatedAt),
+				gt(redemptionCodes.remainingTokens, 0)
 			),
 			orderBy: desc(redemptionCodes.redeemedAt)
 		});
 
-		if (!activeCode || activeCode.remainingTokens <= 0) {
+		if (!activeCode) {
 			return { success: false, error: 'No tokens available' };
 		}
 

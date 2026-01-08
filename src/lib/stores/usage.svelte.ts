@@ -1,15 +1,21 @@
 import { browser } from '$app/environment';
 
+export interface CodeBalance {
+	code: string;
+	remainingTokens: number;
+}
+
 export interface UsageState {
 	freeRemaining: number;
 	tokenBalance: number;
 	weekResetDate: string | null;
 	activeCode: string | null;
+	activeCodes: CodeBalance[];
 }
 
 type UsageSyncMessage =
 	| { type: 'USAGE_UPDATED'; payload: UsageState }
-	| { type: 'CODE_REDEEMED'; payload: { code: string; balance: number } };
+	| { type: 'CODE_REDEEMED'; payload: { code: string; balance: number; activeCodes: CodeBalance[] } };
 
 const CHANNEL_NAME = 'usage-sync';
 
@@ -18,7 +24,8 @@ function createUsageStore() {
 		freeRemaining: 3,
 		tokenBalance: 0,
 		weekResetDate: null,
-		activeCode: null
+		activeCode: null,
+		activeCodes: []
 	});
 	let loading = $state(true);
 	let error = $state<string | null>(null);
@@ -40,6 +47,7 @@ function createUsageStore() {
 						...state,
 						tokenBalance: message.payload.balance,
 						activeCode: message.payload.code,
+						activeCodes: message.payload.activeCodes,
 						freeRemaining: 0 // Tokens replace free tier
 					};
 					break;
@@ -105,14 +113,15 @@ function createUsageStore() {
 			broadcast({ type: 'USAGE_UPDATED', payload: state });
 		},
 
-		setTokenBalance(balance: number, code: string) {
+		setTokenBalance(balance: number, code: string, activeCodes: CodeBalance[]) {
 			state = {
 				...state,
 				tokenBalance: balance,
 				activeCode: code,
+				activeCodes,
 				freeRemaining: 0 // Tokens replace free tier
 			};
-			broadcast({ type: 'CODE_REDEEMED', payload: { code, balance } });
+			broadcast({ type: 'CODE_REDEEMED', payload: { code, balance, activeCodes } });
 		},
 
 		updateFromServer(data: UsageState) {

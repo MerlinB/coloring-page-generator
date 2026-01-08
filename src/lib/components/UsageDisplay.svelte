@@ -50,10 +50,38 @@
 				</button>
 			{/if}
 		</div>
-		{#if usageStore.state.activeCode}
-			<p class="mt-1 text-sm text-gold-600">
-				Code: {usageStore.state.activeCode}
-			</p>
+		{#if usageStore.state.activeCodes.length > 0}
+			<div class="group relative mt-1 inline-block">
+				<p class="cursor-default text-sm text-gold-600">
+					{#if usageStore.state.activeCodes.length === 1}
+						Code: {usageStore.state.activeCodes[0].code}
+					{:else}
+						<span class="underline decoration-dotted underline-offset-2">
+							{usageStore.state.activeCodes.length} codes
+						</span>
+					{/if}
+				</p>
+				{#if usageStore.state.activeCodes.length > 1}
+					<!-- Tooltip with code breakdown -->
+					<div
+						class="pointer-events-none absolute bottom-full left-0 z-10 mb-2 min-w-48 rounded-lg bg-gold-800 p-3 text-sm text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
+					>
+						<p class="mb-2 font-semibold">Your codes:</p>
+						<ul class="space-y-1">
+							{#each usageStore.state.activeCodes as codeInfo (codeInfo.code)}
+								<li class="flex justify-between gap-4">
+									<span class="font-mono text-xs">{codeInfo.code}</span>
+									<span class="text-gold-200">{codeInfo.remainingTokens}</span>
+								</li>
+							{/each}
+						</ul>
+						<!-- Tooltip arrow -->
+						<div
+							class="absolute -bottom-1 left-4 h-2 w-2 rotate-45 bg-gold-800"
+						></div>
+					</div>
+				{/if}
+			</div>
 		{/if}
 	{:else}
 		<!-- Free tier display -->

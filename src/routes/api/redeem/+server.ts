@@ -72,10 +72,16 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	const totalBalance = allCodes.reduce((sum, c) => sum + c.remainingTokens, 0);
 
+	// Build codes breakdown (only include codes with remaining tokens)
+	const activeCodes = allCodes
+		.filter((c) => c.remainingTokens > 0)
+		.map((c) => ({ code: c.code, remainingTokens: c.remainingTokens }));
+
 	return json({
 		success: true,
 		code: formattedCode,
 		remainingTokens: existingCode.remainingTokens,
-		totalBalance
+		totalBalance,
+		activeCodes
 	});
 };
