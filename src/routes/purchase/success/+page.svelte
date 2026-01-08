@@ -60,12 +60,18 @@
 			</div>
 
 			<p class="mt-4 text-sm text-muted-foreground">
-				Save this code! You'll also receive it via email. Enter it on any device to use your images.
+				{#if data.status === 'pending'}
+					Your payment is being processed. The code will be active shortly and you'll receive it via
+					email.
+				{:else}
+					Save this code! You'll also receive it via email. Enter it on any device to use your
+					images.
+				{/if}
 			</p>
 		{:else}
 			<div class="mt-6 rounded-2xl bg-gold-50 p-4">
 				<p class="text-gold-700">
-					Your code is being generated. Please check your email or refresh this page in a moment.
+					Your payment is being processed. Your code will appear here and in your email shortly.
 				</p>
 			</div>
 		{/if}

@@ -14,8 +14,11 @@ export const purchaseStatusEnum = pgEnum('purchase_status', [
 	'pending',
 	'completed',
 	'refunded',
-	'partially_refunded'
+	'partially_refunded',
+	'expired'
 ]);
+
+export const codeStatusEnum = pgEnum('code_status', ['pending', 'active']);
 
 /**
  * Devices table - tracks free tier usage by device fingerprint.
@@ -45,6 +48,7 @@ export const redemptionCodes = pgTable(
 		code: text('code').notNull().unique(),
 		initialTokens: integer('initial_tokens').notNull(),
 		remainingTokens: integer('remaining_tokens').notNull(),
+		status: codeStatusEnum('status').notNull().default('pending'),
 		purchaseId: uuid('purchase_id').references(() => purchases.id),
 		redeemedByFingerprint: text('redeemed_by_fingerprint'),
 		redeemedAt: timestamp('redeemed_at', { withTimezone: true }),

@@ -20,13 +20,20 @@ export const POST: RequestHandler = async ({ request }) => {
 	// Format to canonical form for database lookup
 	const formattedCode = formatRedemptionCode(code);
 
-	// Find code in database
+	// Find code in database (only active codes can be redeemed)
 	const existingCode = await db.query.redemptionCodes.findFirst({
-		where: and(eq(redemptionCodes.code, formattedCode), isNull(redemptionCodes.invalidatedAt))
+		where: and(
+			eq(redemptionCodes.code, formattedCode),
+			isNull(redemptionCodes.invalidatedAt),
+			eq(redemptionCodes.status, 'active')
+		)
 	});
 
 	if (!existingCode) {
-		return json({ error: 'Code not found or has been invalidated' }, { status: 404 });
+		return json(
+			{ error: 'Code not found, payment pending, or code has been invalidated' },
+			{ status: 404 }
+		);
 	}
 
 	if (existingCode.remainingTokens <= 0) {
@@ -54,11 +61,12 @@ export const POST: RequestHandler = async ({ request }) => {
 			.where(eq(redemptionCodes.id, existingCode.id));
 	}
 
-	// Get total balance for this device (sum of all redeemed codes)
+	// Get total balance for this device (sum of all active redeemed codes)
 	const allCodes = await db.query.redemptionCodes.findMany({
 		where: and(
 			eq(redemptionCodes.redeemedByFingerprint, fingerprint),
-			isNull(redemptionCodes.invalidatedAt)
+			isNull(redemptionCodes.invalidatedAt),
+			eq(redemptionCodes.status, 'active')
 		)
 	});
 

@@ -6,7 +6,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	const sessionId = url.searchParams.get('session_id');
 
 	if (!sessionId) {
-		return { code: null, tokens: 0 };
+		return { code: null, tokens: 0, status: null };
 	}
 
 	// Find purchase and associated code
@@ -15,7 +15,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	});
 
 	if (!purchase) {
-		return { code: null, tokens: 0 };
+		return { code: null, tokens: 0, status: null };
 	}
 
 	const code = await db.query.redemptionCodes.findFirst({
@@ -24,6 +24,7 @@ export const load: PageServerLoad = async ({ url }) => {
 
 	return {
 		code: code?.code ?? null,
-		tokens: code?.initialTokens ?? 0
+		tokens: code?.initialTokens ?? 0,
+		status: code?.status ?? null
 	};
 };

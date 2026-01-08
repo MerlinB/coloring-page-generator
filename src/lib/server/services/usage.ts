@@ -52,10 +52,11 @@ export async function getUsageForDevice(fingerprint: string): Promise<UsageData>
 		device = updated;
 	}
 
-	// Get active redemption code balance (most recently redeemed, not invalidated)
+	// Get active redemption code balance (most recently redeemed, activated, not invalidated)
 	const activeCode = await db.query.redemptionCodes.findFirst({
 		where: and(
 			eq(redemptionCodes.redeemedByFingerprint, fingerprint),
+			eq(redemptionCodes.status, 'active'),
 			isNull(redemptionCodes.invalidatedAt)
 		),
 		orderBy: desc(redemptionCodes.redeemedAt)
@@ -87,10 +88,11 @@ export async function consumeGeneration(
 	const usage = await getUsageForDevice(fingerprint);
 
 	if (usage.tokenBalance > 0) {
-		// Consume from token balance
+		// Consume from token balance (only active codes)
 		const activeCode = await db.query.redemptionCodes.findFirst({
 			where: and(
 				eq(redemptionCodes.redeemedByFingerprint, fingerprint),
+				eq(redemptionCodes.status, 'active'),
 				isNull(redemptionCodes.invalidatedAt)
 			),
 			orderBy: desc(redemptionCodes.redeemedAt)

@@ -4,7 +4,6 @@ import { stripe } from '$lib/server/stripe';
 import { env } from '$env/dynamic/private';
 import { db, purchases, redemptionCodes } from '$lib/server/db';
 import { eq } from 'drizzle-orm';
-import { generateRedemptionCode } from '$lib/server/services/codes';
 import type Stripe from 'stripe';
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -55,22 +54,43 @@ export const POST: RequestHandler = async ({ request }) => {
 				break;
 			}
 
-			// Generate redemption code
-			const tokens = parseInt(session.metadata?.tokens ?? '0', 10);
-			const fingerprint = session.metadata?.fingerprint ?? null;
-			const code = generateRedemptionCode();
+			// Activate the pre-generated redemption code (code was created in checkout endpoint)
+			await db
+				.update(redemptionCodes)
+				.set({ status: 'active' })
+				.where(eq(redemptionCodes.purchaseId, purchase.id));
 
-			await db.insert(redemptionCodes).values({
-				code,
-				initialTokens: tokens,
-				remainingTokens: tokens,
-				purchaseId: purchase.id,
-				// Auto-redeem for the device that made the purchase
-				redeemedByFingerprint: fingerprint,
-				redeemedAt: fingerprint ? new Date() : null
+			// Get the code for logging
+			const existingCode = await db.query.redemptionCodes.findFirst({
+				where: eq(redemptionCodes.purchaseId, purchase.id)
 			});
 
-			console.log(`Generated code ${code} for session ${session.id} with ${tokens} tokens (auto-redeemed: ${!!fingerprint})`);
+			console.log(
+				`Activated code ${existingCode?.code} for session ${session.id} (fingerprint: ${existingCode?.redeemedByFingerprint ?? 'none'})`
+			);
+			break;
+		}
+
+		case 'checkout.session.expired': {
+			const session = event.data.object as Stripe.Checkout.Session;
+
+			// Find and clean up pending purchase/code for expired sessions
+			const purchase = await db.query.purchases.findFirst({
+				where: eq(purchases.stripeSessionId, session.id)
+			});
+
+			if (purchase) {
+				// Delete pending redemption code
+				await db.delete(redemptionCodes).where(eq(redemptionCodes.purchaseId, purchase.id));
+
+				// Update purchase status to expired
+				await db
+					.update(purchases)
+					.set({ status: 'expired', updatedAt: new Date() })
+					.where(eq(purchases.id, purchase.id));
+
+				console.log(`Cleaned up expired session ${session.id}`);
+			}
 			break;
 		}
 
