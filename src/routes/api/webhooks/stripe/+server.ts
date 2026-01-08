@@ -7,6 +7,9 @@ import { eq } from 'drizzle-orm';
 import { generateRedemptionCode } from '$lib/server/services/codes';
 import type Stripe from 'stripe';
 
+// Prevent 307 redirects - Stripe webhooks don't follow redirects
+export const trailingSlash = 'ignore';
+
 export const POST: RequestHandler = async ({ request }) => {
 	const body = await request.text();
 	const signature = request.headers.get('stripe-signature');
