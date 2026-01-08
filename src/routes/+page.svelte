@@ -184,9 +184,6 @@
     </section>
   {/if}
 
-  <footer class="mt-12 text-center text-sm text-muted-foreground">
-    <p>Powered by Google Gemini</p>
-  </footer>
 </main>
 
 <!-- Lightbox overlay -->
