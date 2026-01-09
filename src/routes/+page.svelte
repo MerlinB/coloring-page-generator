@@ -212,8 +212,31 @@
   <div
     class="mx-auto max-w-2xl space-y-6 lg:grid lg:max-w-7xl lg:grid-cols-[400px_1fr] lg:gap-8 lg:space-y-0 xl:grid-cols-[420px_1fr]"
   >
-    <!-- Left Panel: Form + Error + Usage -->
-    <div class="order-2 space-y-6 lg:sticky lg:top-8 lg:order-1 lg:self-start">
+    <!-- Image Viewer (first in DOM for mobile, right on desktop) -->
+    <!-- Hidden on mobile when no image is generating or displayed -->
+    <div
+      class="lg:order-2"
+      class:hidden={!gallery.isGenerating && !gallery.currentImage}
+      class:lg:block={!gallery.isGenerating && !gallery.currentImage}
+    >
+      {#if gallery.isGenerating}
+        <div
+          class="flex min-h-[400px] items-center justify-center rounded-3xl bg-card shadow-lg lg:min-h-[500px]"
+        >
+          <LoadingSpinner />
+        </div>
+      {:else}
+        <ImageViewer
+          imageData={gallery.currentImage?.imageData ?? null}
+          prompt={gallery.currentImage?.prompt ?? null}
+          onexpand={() => openLightboxForCurrentImage()}
+          onedit={() => openEditModalForCurrentImage()}
+        />
+      {/if}
+    </div>
+
+    <!-- Form Panel (second in DOM for mobile, left on desktop) -->
+    <div class="space-y-6 lg:sticky lg:top-8 lg:order-1 lg:self-start">
       <!-- Error Display -->
       {#if gallery.error}
         <ErrorMessage
@@ -234,24 +257,6 @@
 
       <!-- Redeem Code -->
       <RedeemCode />
-    </div>
-
-    <!-- Right Panel: Image Viewer -->
-    <div class="order-1 lg:order-2">
-      {#if gallery.isGenerating}
-        <div
-          class="flex min-h-[400px] items-center justify-center rounded-3xl bg-card shadow-lg lg:min-h-[500px]"
-        >
-          <LoadingSpinner />
-        </div>
-      {:else}
-        <ImageViewer
-          imageData={gallery.currentImage?.imageData ?? null}
-          prompt={gallery.currentImage?.prompt ?? null}
-          onexpand={() => openLightboxForCurrentImage()}
-          onedit={() => openEditModalForCurrentImage()}
-        />
-      {/if}
     </div>
   </div>
 
