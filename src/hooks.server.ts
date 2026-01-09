@@ -55,12 +55,14 @@ const paraglideHandle: Handle = ({ event, resolve }) => {
 
   if (domainLocale !== "en") {
     const url = new URL(event.request.url)
+    console.log("[i18n] original pathname:", url.pathname)
     // Only add prefix if not already present
     if (
       !url.pathname.startsWith(`/${domainLocale}/`) &&
       url.pathname !== `/${domainLocale}`
     ) {
       url.pathname = `/${domainLocale}${url.pathname}`
+      console.log("[i18n] modified pathname:", url.pathname)
       requestForParaglide = new Request(url.toString(), event.request)
     }
   }
@@ -68,6 +70,7 @@ const paraglideHandle: Handle = ({ event, resolve }) => {
   return paraglideMiddleware(
     requestForParaglide,
     ({ request: localizedRequest, locale }) => {
+      console.log("[i18n] paraglide detected locale:", locale)
       // Keep the original request URL (without locale prefix) for SvelteKit routing
       // The reroute hook in hooks.ts handles stripping the prefix
       event.request = localizedRequest
