@@ -50,7 +50,8 @@ export const POST: RequestHandler = async ({ request, url, locals }) => {
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      payment_method_types: ["card"],
+      // Use dynamic payment methods - configure available methods in Stripe Dashboard
+      // This automatically shows card, PayPal, Apple Pay, Google Pay, etc. based on your settings
       line_items: [
         {
           price: pack.priceId,
