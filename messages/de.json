@@ -37,7 +37,7 @@
   "usage_code_label": "Code: {code}",
   "usage_codes_count": "{count} Codes",
   "usage_your_codes": "Deine Codes:",
-  "usage_free_remaining": "{remaining} von {total} kostenlosen Bildern diese Woche",
+  "usage_free_remaining": "{remaining} kostenlose Bilder übrig",
   "usage_resets": "Zurückgesetzt {time}",
   "usage_today": "heute",
   "usage_tomorrow": "morgen",

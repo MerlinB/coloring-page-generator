@@ -7,7 +7,6 @@
 <script lang="ts">
   import { Sparkles, Clock, Plus } from "@lucide/svelte"
   import { usageStore } from "$lib/stores/usage.svelte"
-  import { FREE_TIER_LIMIT } from "$lib/constants"
   import * as m from "$lib/paraglide/messages"
 
   interface Props {
@@ -97,7 +96,6 @@
         <span class="font-display font-semibold text-gold-800">
           {m.usage_free_remaining({
             remaining: String(usageStore.state.freeRemaining),
-            total: String(FREE_TIER_LIMIT),
           })}
         </span>
       </div>
