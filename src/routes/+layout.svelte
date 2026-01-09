@@ -13,7 +13,9 @@
   import favicon from "$lib/assets/favicon.svg"
 
   const currentLocale = $derived(getLocale() as Locale)
-  const canonicalUrl = $derived(buildDomainUrl(page.url.pathname, currentLocale))
+  const canonicalUrl = $derived(
+    buildDomainUrl(page.url.pathname, currentLocale),
+  )
   const ogLocale = $derived(currentLocale === "de" ? "de_DE" : "en_US")
 
   let { children, data } = $props()
@@ -88,8 +90,8 @@
     offers: {
       "@type": "Offer",
       price: "0",
-      priceCurrency: "USD"
-    }
+      priceCurrency: "USD",
+    },
   })}</script>`}
 </svelte:head>
 

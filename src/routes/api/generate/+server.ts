@@ -10,8 +10,14 @@ import type { PageFormat } from "$lib/types"
 export const POST: RequestHandler = async ({ request, locals }) => {
   const fingerprint = locals.fingerprint
   const body = await request.json()
-  const { prompt, kidFriendly, format, editMode, sourceImageData, sourcePrompt } =
-    body
+  const {
+    prompt,
+    kidFriendly,
+    format,
+    editMode,
+    sourceImageData,
+    sourcePrompt,
+  } = body
 
   if (!prompt || typeof prompt !== "string") {
     return json(
