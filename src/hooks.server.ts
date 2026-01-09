@@ -38,11 +38,16 @@ function cleanupOldEntries() {
  * so paraglide correctly identifies the locale.
  */
 const paraglideHandle: Handle = ({ event, resolve }) => {
-  // Use Host header for custom domains (Vercel/proxies set this correctly)
+  // Use x-forwarded-host (proxy) or host header for custom domains
   // Fall back to event.url.hostname for local development
-  const hostHeader = event.request.headers.get("host")
-  const hostname = hostHeader ?? event.url.hostname
+  const hostname =
+    event.request.headers.get("x-forwarded-host") ??
+    event.request.headers.get("host") ??
+    event.url.hostname
   const domainLocale = getLocaleFromHostname(hostname)
+
+  // Debug logging (check Vercel function logs)
+  console.log("[i18n] hostname:", hostname, "-> locale:", domainLocale)
 
   // Create a modified request with locale prefix for non-base locales
   // This allows paraglide to correctly detect the locale from the URL
