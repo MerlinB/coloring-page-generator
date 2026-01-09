@@ -139,6 +139,15 @@ The language switcher links directly to the other domain (not URL paths) to avoi
 <h1>{m.site_title()}</h1><p>{m.usage_images_remaining({ count: "5" })}</p>
 ```
 
+## SEO
+
+- `src/routes/+layout.svelte` - Global meta tags (title, description, OG, Twitter, hreflang, JSON-LD)
+- `src/routes/sitemap.xml/+server.ts` - Dynamic, locale-aware XML sitemap
+- `src/routes/+error.svelte` - Custom 404/500 error page
+- `static/robots.txt` - Disallows `/api/` and `/purchase/`, references both domain sitemaps
+
+**New pages**: Public pages use layout defaults. Transactional pages (purchase flow, errors) should add `<meta name="robots" content="noindex, nofollow" />`
+
 ## Design Guidelines
 
 This project has a playful, child-friendly design system targeting kids and parents.
