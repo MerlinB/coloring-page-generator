@@ -1,7 +1,31 @@
 import type { Handle } from "@sveltejs/kit"
 import { sequence } from "@sveltejs/kit/hooks"
+import { AsyncLocalStorage } from "node:async_hooks"
 import { paraglideMiddleware } from "$lib/paraglide/server"
+import {
+  overwriteGetLocale,
+  baseLocale,
+  isLocale,
+} from "$lib/paraglide/runtime"
 import { getLocaleFromHostname } from "$lib/i18n/domains"
+
+/**
+ * AsyncLocalStorage for request-scoped locale.
+ * This prevents race conditions when handling concurrent requests with different locales.
+ */
+const localeStorage = new AsyncLocalStorage<string>()
+
+/**
+ * Override paraglide's getLocale to use our domain-based detection.
+ * This is the recommended approach per paraglide documentation.
+ */
+overwriteGetLocale(() => {
+  const stored = localeStorage.getStore()
+  if (stored && isLocale(stored)) {
+    return stored
+  }
+  return baseLocale
+})
 
 /**
  * Simple in-memory rate limiting.
@@ -34,8 +58,7 @@ function cleanupOldEntries() {
 
 /**
  * Domain-based locale detection with paraglide middleware.
- * Detects locale from hostname and modifies request URL to include locale prefix
- * so paraglide correctly identifies the locale.
+ * Uses AsyncLocalStorage to properly scope locale per request.
  */
 const paraglideHandle: Handle = ({ event, resolve }) => {
   // Use x-forwarded-host (proxy) or host header for custom domains
@@ -46,39 +69,19 @@ const paraglideHandle: Handle = ({ event, resolve }) => {
     event.url.hostname
   const domainLocale = getLocaleFromHostname(hostname)
 
-  // Debug logging (check Vercel function logs)
   console.log("[i18n] hostname:", hostname, "-> locale:", domainLocale)
 
-  // Create a modified request with locale prefix for non-base locales
-  // This allows paraglide to correctly detect the locale from the URL
-  let requestForParaglide = event.request
-
-  if (domainLocale !== "en") {
-    const url = new URL(event.request.url)
-    console.log("[i18n] original pathname:", url.pathname)
-    // Only add prefix if not already present
-    if (
-      !url.pathname.startsWith(`/${domainLocale}/`) &&
-      url.pathname !== `/${domainLocale}`
-    ) {
-      url.pathname = `/${domainLocale}${url.pathname}`
-      console.log("[i18n] modified pathname:", url.pathname)
-      requestForParaglide = new Request(url.toString(), event.request)
-    }
-  }
-
-  return paraglideMiddleware(
-    requestForParaglide,
-    ({ request: localizedRequest, locale }) => {
-      console.log("[i18n] paraglide detected locale:", locale)
-      // Keep the original request URL (without locale prefix) for SvelteKit routing
-      // The reroute hook in hooks.ts handles stripping the prefix
-      event.request = localizedRequest
+  // Run request handling within the locale context
+  // This ensures getLocale() returns the correct locale for this request
+  return localeStorage.run(domainLocale, () => {
+    return paraglideMiddleware(event.request, ({ request, locale }) => {
+      console.log("[i18n] paraglide locale:", locale)
+      event.request = request
       return resolve(event, {
         transformPageChunk: ({ html }) => html.replace("%lang%", locale),
       })
-    },
-  )
+    })
+  })
 }
 
 const rateLimitHandle: Handle = async ({ event, resolve }) => {

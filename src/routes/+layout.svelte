@@ -6,6 +6,7 @@
   import { usageStore } from "$lib/stores/usage.svelte"
   import { locales } from "$lib/paraglide/runtime"
   import { buildDomainUrl, type Locale } from "$lib/i18n/domains"
+  import "$lib/i18n/client" // Initialize client-side locale detection
   import LanguageSwitcher from "$lib/components/LanguageSwitcher.svelte"
   import "./layout.css"
   import favicon from "$lib/assets/favicon.svg"
