@@ -183,6 +183,14 @@ Required in `.env`:
 - `STRIPE_WEBHOOK_SECRET` - Stripe webhook signing secret
 - `PUBLIC_STRIPE_PUBLISHABLE_KEY` - Stripe publishable key
 
+## Google Cloud Quotas
+
+API quotas configured in Google Cloud Console (IAM & Admin → Quotas & System Limits):
+
+| Quota | Model | Limit |
+|-------|-------|-------|
+| Request limit per model per day for a project | gemini-2.5-flash | 1,000 |
+
 ## Important Conventions
 
 ### Database Migrations
