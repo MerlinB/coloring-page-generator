@@ -105,6 +105,7 @@
   "cancelled_back": "Back to Generator",
 
   "gallery_item_alt": "Coloring page: {prompt}",
+  "gallery_load_more": "Show more ({remaining} remaining)",
 
   "common_error_fingerprint": "Device identification not ready. Please try again.",
   "common_error_generation_failed": "Generation failed",

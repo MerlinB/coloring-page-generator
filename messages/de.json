@@ -105,6 +105,7 @@
   "cancelled_back": "Zurück zum Generator",
 
   "gallery_item_alt": "Ausmalbild: {prompt}",
+  "gallery_load_more": "Mehr anzeigen ({remaining} übrig)",
 
   "common_error_fingerprint": "Geräteerkennung nicht bereit. Bitte versuche es erneut.",
   "common_error_generation_failed": "Erstellung fehlgeschlagen",
