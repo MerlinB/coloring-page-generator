@@ -1,4 +1,5 @@
 import { browser } from "$app/environment"
+import { FREE_TIER_LIMIT } from "$lib/constants"
 
 export interface CodeBalance {
   code: string
@@ -24,7 +25,7 @@ const CHANNEL_NAME = "usage-sync"
 
 function createUsageStore() {
   let state = $state<UsageState>({
-    freeRemaining: 3,
+    freeRemaining: FREE_TIER_LIMIT,
     tokenBalance: 0,
     weekResetDate: null,
     activeCode: null,

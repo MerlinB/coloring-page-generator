@@ -1,7 +1,6 @@
 import { db, devices, redemptionCodes, generations } from "$lib/server/db"
 import { eq, and, isNull, desc, sql, gt } from "drizzle-orm"
-
-const FREE_TIER_LIMIT = 5
+import { FREE_TIER_LIMIT } from "$lib/constants"
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000
 
 export interface CodeBalance {
