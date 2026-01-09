@@ -199,11 +199,6 @@
   }
 </script>
 
-<svelte:head>
-  <title>{m.site_title()}</title>
-  <meta name="description" content={m.site_description()} />
-</svelte:head>
-
 <main class="min-h-screen bg-background px-4 pt-14 pb-8">
   <header class="mx-auto mb-8 max-w-7xl text-center">
     <h1 class="sr-only">{m.site_title()}</h1>

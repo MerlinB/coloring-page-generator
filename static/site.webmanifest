@@ -1,6 +1,9 @@
 {
   "name": "Coloring Pages Generator",
   "short_name": "Coloring",
+  "description": "Create fun coloring pages for children with AI",
+  "start_url": "/",
+  "scope": "/",
   "icons": [
     {
       "src": "/icon-192.png",
@@ -15,5 +18,6 @@
   ],
   "theme_color": "#E86A50",
   "background_color": "#FFFAF8",
-  "display": "standalone"
+  "display": "standalone",
+  "categories": ["kids", "entertainment", "utilities"]
 }
