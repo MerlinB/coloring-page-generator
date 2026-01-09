@@ -12,6 +12,7 @@
   import UsageDisplay from "$lib/components/UsageDisplay.svelte"
   import PurchasePrompt from "$lib/components/PurchasePrompt.svelte"
   import RedeemCode from "$lib/components/RedeemCode.svelte"
+  import SiteTitle from "$lib/components/SiteTitle.svelte"
   import type { GalleryImage } from "$lib/types"
   import * as m from "$lib/paraglide/messages"
 
@@ -203,16 +204,13 @@
   <meta name="description" content={m.site_description()} />
 </svelte:head>
 
-<main class="min-h-screen bg-background px-4 py-8">
-  <header class="mx-auto mb-12 max-w-7xl text-center">
-    <h1
-      class="font-display text-4xl font-bold tracking-tight text-coral-700 sm:text-5xl lg:text-6xl"
-    >
-      {m.site_title()}
-    </h1>
-    <p class="mx-auto mt-4 max-w-lg text-lg text-muted-foreground sm:text-xl">
+<main class="min-h-screen bg-background px-4 pt-14 pb-8">
+  <header class="mx-auto mb-8 max-w-7xl text-center">
+    <h1 class="sr-only">{m.site_title()}</h1>
+    <SiteTitle title={m.site_title()} />
+    <!-- <p class="mx-auto mt-6 max-w-lg text-lg text-muted-foreground sm:text-xl">
       {m.site_tagline()}
-    </p>
+    </p> -->
   </header>
 
   <!-- Split Panel Layout: Form (left) + Image (right) on desktop -->
