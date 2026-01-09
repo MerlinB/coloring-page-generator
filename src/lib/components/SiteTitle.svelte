@@ -56,45 +56,45 @@
   let capitalSize = $derived(fontSize() * 1.2) // 20% larger
 </script>
 
-<div class="relative mx-auto mt-6 w-full max-w-3xl px-4 py-6">
+<div class="relative mx-auto mt-6 w-full max-w-3xl px-6 pt-6 pb-8">
   <!-- Decorative icons - scattered with varied sizes, can overlap text -->
   <Sparkles
-    class="absolute -top-6 left-2 h-10 w-10 rotate-12 text-gold-400 sm:left-6 sm:h-14 sm:w-14"
+    class="absolute -top-6 left-2 h-8 w-8 rotate-12 text-gold-400 sm:left-6 sm:h-14 sm:w-14"
     strokeWidth={2}
     fill="currentColor"
   />
   <Star
-    class="absolute -top-4 right-4 h-9 w-9 -rotate-12 text-lavender-500 sm:right-8 sm:h-12 sm:w-12"
+    class="absolute -top-4 right-4 h-7 w-7 -rotate-12 text-lavender-500 sm:right-8 sm:h-12 sm:w-12"
     strokeWidth={2}
     fill="currentColor"
   />
   <Pencil
-    class="absolute bottom-8 left-[12%] h-8 w-8 rotate-25 text-coral-400 sm:h-10 sm:w-10"
+    class="absolute bottom-8 left-[12%] h-6 w-6 rotate-25 text-coral-400 sm:h-10 sm:w-10"
     strokeWidth={2}
     fill="currentColor"
   />
   <Palette
-    class="absolute right-[10%] bottom-4 h-11 w-11 rotate-[20deg] text-gold-500 sm:h-14 sm:w-14"
+    class="absolute right-[10%] bottom-4 h-9 w-9 rotate-[20deg] text-gold-500 sm:h-14 sm:w-14"
     strokeWidth={1.5}
     fill="currentColor"
   />
   <Heart
-    class="absolute -top-8 left-[30%] h-7 w-7 rotate-[15deg] text-coral-300 sm:h-8 sm:w-8"
+    class="absolute -top-8 left-[30%] h-5 w-5 rotate-[15deg] text-coral-300 sm:h-8 sm:w-8"
     strokeWidth={2}
     fill="currentColor"
   />
   <Flower2
-    class="absolute -top-10 right-[28%] h-9 w-9 -rotate-[44deg] text-lavender-400 sm:h-11 sm:w-11"
+    class="absolute -top-10 right-[28%] h-7 w-7 -rotate-[44deg] text-lavender-400 sm:h-11 sm:w-11"
     strokeWidth={1.5}
     fill="currentColor"
   />
   <Star
-    class="absolute bottom-12 left-[42%] h-5 w-5 rotate-[35deg] text-gold-300 sm:h-6 sm:w-6"
+    class="absolute bottom-12 left-[42%] h-4 w-4 rotate-[35deg] text-gold-300 sm:h-6 sm:w-6"
     strokeWidth={2}
     fill="currentColor"
   />
   <Sparkles
-    class="absolute right-[38%] bottom-6 h-8 w-8 -rotate-[15deg] text-lavender-300 sm:h-9 sm:w-9"
+    class="absolute right-[38%] bottom-6 h-6 w-6 -rotate-[15deg] text-lavender-300 sm:h-9 sm:w-9"
     strokeWidth={2}
     fill="currentColor"
   />
