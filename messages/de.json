@@ -113,5 +113,14 @@
 
   "language_switcher_label": "Sprache",
   "language_en": "English",
-  "language_de": "Deutsch"
+  "language_de": "Deutsch",
+
+  "error_404_title": "Seite nicht gefunden - Ausmalbilder Generator",
+  "error_404_message": "Hoppla! Diese Seite scheint sich verlaufen zu haben. Lass uns zum Erstellen zurückkehren!",
+  "error_generic_title": "Etwas ist schiefgelaufen - Ausmalbilder Generator",
+  "error_generic_message": "Wir sind auf ein kleines Problem gestoßen. Keine Sorge, das passiert den Besten!",
+  "error_back_home": "Zurück zum Erstellen",
+
+  "success_page_description": "Dein Kauf von Ausmalbildern ist abgeschlossen. Speichere deinen Einlösecode, um loszulegen.",
+  "cancelled_page_description": "Dein Kauf wurde abgebrochen. Komm jederzeit zurück, um mehr Ausmalbild-Guthaben zu erhalten."
 }

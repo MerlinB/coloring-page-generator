@@ -1,3 +1,13 @@
-# allow crawling everything by default
+# Coloring Page Generator
+# https://makecoloringpages.com / https://ausmalbilder-generator.de
+
 User-agent: *
-Disallow:
+Allow: /
+
+# Disallow transactional and API routes
+Disallow: /api/
+Disallow: /purchase/
+
+# Sitemaps (domain-specific, served dynamically)
+Sitemap: https://www.makecoloringpages.com/sitemap.xml
+Sitemap: https://www.ausmalbilder-generator.de/sitemap.xml

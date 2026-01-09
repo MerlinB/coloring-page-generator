@@ -8,6 +8,8 @@
 
 <svelte:head>
   <title>{m.cancelled_page_title()}</title>
+  <meta name="description" content={m.cancelled_page_description()} />
+  <meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
 <main class="flex min-h-screen items-center justify-center bg-background p-4">

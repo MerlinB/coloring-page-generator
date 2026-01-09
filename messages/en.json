@@ -113,5 +113,14 @@
 
   "language_switcher_label": "Language",
   "language_en": "English",
-  "language_de": "Deutsch"
+  "language_de": "Deutsch",
+
+  "error_404_title": "Page Not Found - Coloring Page Generator",
+  "error_404_message": "Oops! This page seems to have wandered off. Let's get you back to creating!",
+  "error_generic_title": "Something Went Wrong - Coloring Page Generator",
+  "error_generic_message": "We hit a small bump. Don't worry, it happens to the best of us!",
+  "error_back_home": "Back to Creating",
+
+  "success_page_description": "Your coloring page purchase is complete. Save your redemption code to start creating.",
+  "cancelled_page_description": "Your purchase was cancelled. Return anytime to get more coloring page credits."
 }
