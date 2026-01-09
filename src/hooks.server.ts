@@ -62,8 +62,6 @@ const localeHandle: Handle = ({ event, resolve }) => {
     event.url.hostname
   const locale = getLocaleFromHostname(hostname)
 
-  console.log("[i18n] hostname:", hostname, "-> locale:", locale)
-
   // Run request in locale context so getLocale() returns correct value
   return localeStorage.run(locale, () => {
     return resolve(event, {

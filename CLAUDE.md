@@ -72,8 +72,9 @@ The app uses `@inlang/paraglide-js` for localization with domain-based locale de
 - `messages/de.json` - German translations
 - `src/lib/paraglide/` - Auto-generated runtime (do not edit)
 - `src/lib/i18n/domains.ts` - Domain-locale mappings and helpers
-- `src/hooks.server.ts` - Domain-to-locale detection + paraglide middleware
-- `src/hooks.ts` - URL rerouting for locale paths
+- `src/lib/i18n/client.ts` - Client-side locale detection from HTML lang
+- `src/hooks.server.ts` - Domain-to-locale detection via overwriteGetLocale
+- `src/hooks.ts` - URL rerouting for locale paths (safety net)
 - `src/lib/components/LanguageSwitcher.svelte` - Domain-based language toggle
 
 ### Domain Detection
@@ -84,9 +85,15 @@ Locale is determined by hostname via `src/lib/i18n/domains.ts`:
 - `ausmalbilder-generator.de` → German
 - `localhost` → English (development)
 
+The implementation uses `overwriteGetLocale()` with `AsyncLocalStorage` (per paraglide docs):
+
+- **Server**: `hooks.server.ts` detects hostname, stores locale in `AsyncLocalStorage`, `getLocale()` returns it
+- **Client**: `src/lib/i18n/client.ts` reads from `document.documentElement.lang` (set during SSR)
+
 The domain-to-locale mapping is centralized in `src/lib/i18n/domains.ts` and used by:
 
 - `src/hooks.server.ts` for server-side locale detection
+- `src/lib/i18n/client.ts` for client-side locale detection
 - `LanguageSwitcher.svelte` for cross-domain language links
 - `+layout.svelte` for hreflang SEO tags
 
