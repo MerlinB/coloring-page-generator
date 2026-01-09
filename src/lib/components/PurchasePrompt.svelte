@@ -6,7 +6,6 @@
 -->
 <script lang="ts">
   import { X, Sparkles, Gift, School } from "@lucide/svelte"
-  import { fingerprintStore } from "$lib/stores/fingerprint.svelte"
   import * as m from "$lib/paraglide/messages"
 
   interface Props {
@@ -55,10 +54,7 @@
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          packType: packId,
-          fingerprint: fingerprintStore.fingerprint,
-        }),
+        body: JSON.stringify({ packType: packId }),
       })
 
       if (!res.ok) {

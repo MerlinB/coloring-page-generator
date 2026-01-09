@@ -7,12 +7,13 @@ import {
   formatRedemptionCode,
 } from "$lib/server/services/codes"
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
+  const fingerprint = locals.fingerprint
   const body = await request.json()
-  const { code, fingerprint } = body
+  const { code } = body
 
-  if (!code || !fingerprint) {
-    return json({ error: "Missing code or fingerprint" }, { status: 400 })
+  if (!code) {
+    return json({ error: "Missing code" }, { status: 400 })
   }
 
   // Validate code format and checksum

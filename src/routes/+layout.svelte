@@ -11,19 +11,20 @@
   import "./layout.css"
   import favicon from "$lib/assets/favicon.svg"
 
-  let { children } = $props()
+  let { children, data } = $props()
 
   $effect(() => {
     if (browser) {
       gallery.initialize()
-      fingerprintStore.initialize()
+      // Initialize with server-provided fingerprint
+      fingerprintStore.initialize(data.fingerprint)
     }
   })
 
   // Fetch usage once fingerprint is ready
   $effect(() => {
     if (browser && fingerprintStore.fingerprint && !fingerprintStore.loading) {
-      usageStore.fetchUsage(fingerprintStore.fingerprint)
+      usageStore.fetchUsage()
     }
   })
 </script>

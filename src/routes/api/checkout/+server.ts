@@ -5,9 +5,10 @@ import { db, purchases, redemptionCodes } from "$lib/server/db"
 import { eq } from "drizzle-orm"
 import { generateRedemptionCode } from "$lib/server/services/codes"
 
-export const POST: RequestHandler = async ({ request, url }) => {
+export const POST: RequestHandler = async ({ request, url, locals }) => {
+  const fingerprint = locals.fingerprint
   const body = await request.json()
-  const { packType, fingerprint } = body
+  const { packType } = body
 
   if (!packType || !isValidPackType(packType)) {
     return json({ error: "Invalid pack type" }, { status: 400 })
@@ -42,8 +43,8 @@ export const POST: RequestHandler = async ({ request, url }) => {
     status: "pending",
     purchaseId: purchase.id,
     // Pre-bind fingerprint for auto-redemption (activated when payment succeeds)
-    redeemedByFingerprint: fingerprint ?? null,
-    redeemedAt: fingerprint ? new Date() : null,
+    redeemedByFingerprint: fingerprint,
+    redeemedAt: new Date(),
   })
 
   try {
@@ -76,7 +77,7 @@ export const POST: RequestHandler = async ({ request, url }) => {
       metadata: {
         packType,
         tokens: pack.tokens.toString(),
-        fingerprint: fingerprint ?? "",
+        fingerprint,
         redemptionCode: code,
       },
     })

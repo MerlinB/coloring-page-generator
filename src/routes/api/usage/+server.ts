@@ -2,12 +2,8 @@ import { json } from "@sveltejs/kit"
 import type { RequestHandler } from "./$types"
 import { getUsageForDevice } from "$lib/server/services/usage"
 
-export const GET: RequestHandler = async ({ url }) => {
-  const fingerprint = url.searchParams.get("fp")
-
-  if (!fingerprint) {
-    return json({ error: "Missing fingerprint" }, { status: 400 })
-  }
+export const GET: RequestHandler = async ({ locals }) => {
+  const fingerprint = locals.fingerprint
 
   try {
     const usage = await getUsageForDevice(fingerprint)

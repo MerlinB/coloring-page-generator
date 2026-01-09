@@ -6,7 +6,6 @@
 -->
 <script lang="ts">
   import { Ticket, Check, AlertCircle } from "@lucide/svelte"
-  import { fingerprintStore } from "$lib/stores/fingerprint.svelte"
   import { usageStore } from "$lib/stores/usage.svelte"
   import * as m from "$lib/paraglide/messages"
 
@@ -55,11 +54,6 @@
       return
     }
 
-    if (!fingerprintStore.fingerprint) {
-      error = m.redeem_error_device()
-      return
-    }
-
     loading = true
     error = null
     success = false
@@ -68,10 +62,7 @@
       const res = await fetch("/api/redeem", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code,
-          fingerprint: fingerprintStore.fingerprint,
-        }),
+        body: JSON.stringify({ code }),
       })
 
       const data = await res.json()

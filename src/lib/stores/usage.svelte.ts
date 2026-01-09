@@ -85,7 +85,7 @@ function createUsageStore() {
       return state.tokenBalance > 0 ? state.tokenBalance : state.freeRemaining
     },
 
-    async fetchUsage(fingerprint: string) {
+    async fetchUsage() {
       if (!browser) return
 
       setupSync()
@@ -93,9 +93,7 @@ function createUsageStore() {
       error = null
 
       try {
-        const res = await fetch(
-          `/api/usage?fp=${encodeURIComponent(fingerprint)}`,
-        )
+        const res = await fetch("/api/usage")
         if (!res.ok) throw new Error("Failed to fetch usage")
 
         const data: UsageState = await res.json()

@@ -96,7 +96,6 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fingerprint: fingerprintStore.fingerprint,
           prompt: formData.get("prompt"),
           format: formData.get("format"),
           kidFriendly: formData.get("kidFriendly") === "on",
@@ -159,7 +158,6 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fingerprint: fingerprintStore.fingerprint,
           prompt: editPrompt,
           format: image.format ?? "portrait",
           editMode: true,

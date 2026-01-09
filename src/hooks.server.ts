@@ -7,6 +7,10 @@ import {
   isLocale,
 } from "$lib/paraglide/runtime"
 import { getLocaleFromHostname } from "$lib/i18n/domains"
+import {
+  generateServerFingerprint,
+  getClientIp,
+} from "$lib/server/services/fingerprint"
 
 /**
  * AsyncLocalStorage for request-scoped locale.
@@ -110,4 +114,16 @@ const rateLimitHandle: Handle = async ({ event, resolve }) => {
   return resolve(event)
 }
 
-export const handle = sequence(localeHandle, rateLimitHandle)
+/**
+ * Server-side fingerprint generation.
+ * Generates a deterministic fingerprint from IP + User-Agent.
+ * This ensures the same user gets the same ID across both domains.
+ */
+const fingerprintHandle: Handle = ({ event, resolve }) => {
+  const ip = getClientIp(event.request, () => event.getClientAddress())
+  const userAgent = event.request.headers.get("user-agent")
+  event.locals.fingerprint = generateServerFingerprint(ip, userAgent)
+  return resolve(event)
+}
+
+export const handle = sequence(localeHandle, fingerprintHandle, rateLimitHandle)
