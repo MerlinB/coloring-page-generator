@@ -8,6 +8,7 @@
   import { buildDomainUrl, type Locale } from "$lib/i18n/domains"
   import "$lib/i18n/client" // Initialize client-side locale detection
   import LanguageSwitcher from "$lib/components/LanguageSwitcher.svelte"
+  import Footer from "$lib/components/Footer.svelte"
   import * as m from "$lib/paraglide/messages"
   import "./layout.css"
   import favicon from "$lib/assets/favicon.svg"
@@ -101,3 +102,5 @@
 </div>
 
 {@render children()}
+
+<Footer />
