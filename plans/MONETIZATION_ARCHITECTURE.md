@@ -211,7 +211,7 @@ Once a user redeems a code, they no longer receive weekly free images. Their bal
 
 **Rationale:**
 
-- Simpler UX — one number to track ("You have 47 images")
+- Simpler UX — one number to track ("You have 50 images")
 - 3 free/week = ~$0.12 value, negligible compared to $4.99+ purchase
 - Reduces ongoing cost of supporting paying users
 

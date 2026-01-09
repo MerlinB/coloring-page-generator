@@ -27,22 +27,22 @@ const PACKS = [
   {
     id: "starter",
     name: "Starter Pack",
-    description: "47 coloring page images - Perfect for a rainy day",
-    tokens: 47,
+    description: "50 coloring page images - Perfect for a rainy day",
+    tokens: 50,
     amountCents: 499,
   },
   {
     id: "family",
     name: "Family Pack",
-    description: "107 coloring page images - Great for parties & holidays",
-    tokens: 107,
+    description: "110 coloring page images - Great for parties & holidays",
+    tokens: 110,
     amountCents: 999,
   },
   {
     id: "classroom",
     name: "Classroom Pack",
-    description: "239 coloring page images - Best value for teachers",
-    tokens: 239,
+    description: "240 coloring page images - Best value for teachers",
+    tokens: 240,
     amountCents: 1999,
   },
 ] as const

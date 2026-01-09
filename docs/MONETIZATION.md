@@ -95,11 +95,11 @@ Prices are fixed; image counts are calculated dynamically based on:
 
 ### Pack Comparison by Model
 
-| Pack          | Price  | Target Margin | Flash (47/107/239 imgs) | Pro (13/31/69 imgs) |
+| Pack          | Price  | Target Margin | Flash (50/110/240 imgs) | Pro (13/31/69 imgs) |
 | ------------- | ------ | ------------- | ----------------------- | ------------------- |
-| **Starter**   | $4.99  | 60%           | 47 images               | 13 images           |
-| **Family**    | $9.99  | 55%           | 107 images              | 31 images           |
-| **Classroom** | $19.99 | 50%           | 239 images              | 69 images           |
+| **Starter**   | $4.99  | 60%           | 50 images               | 13 images           |
+| **Family**    | $9.99  | 55%           | 110 images              | 31 images           |
+| **Classroom** | $19.99 | 50%           | 240 images              | 69 images           |
 
 With Flash, you can offer **3.5x more images** at the same margins—a compelling value proposition.
 

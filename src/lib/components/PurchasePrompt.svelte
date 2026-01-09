@@ -22,7 +22,7 @@
     {
       id: "starter",
       name: m.purchase_pack_starter(),
-      images: 47,
+      images: 50,
       price: "$4.99",
       icon: Sparkles,
       description: m.purchase_desc_starter(),
@@ -30,7 +30,7 @@
     {
       id: "family",
       name: m.purchase_pack_family(),
-      images: 107,
+      images: 110,
       price: "$9.99",
       icon: Gift,
       description: m.purchase_desc_family(),
@@ -39,7 +39,7 @@
     {
       id: "classroom",
       name: m.purchase_pack_classroom(),
-      images: 239,
+      images: 240,
       price: "$19.99",
       icon: School,
       description: m.purchase_desc_classroom(),
