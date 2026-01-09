@@ -37,5 +37,11 @@ export default defineConfig(
         svelteConfig,
       },
     },
+
+    rules: {
+      // Allow absolute paths and cross-domain links without resolve()
+      // Cross-domain links are intentional for language switching between domains
+      "svelte/no-navigation-without-resolve": "off",
+    },
   },
 )

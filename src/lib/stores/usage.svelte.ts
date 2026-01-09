@@ -1,139 +1,147 @@
-import { browser } from '$app/environment';
+import { browser } from "$app/environment"
 
 export interface CodeBalance {
-	code: string;
-	remainingTokens: number;
+  code: string
+  remainingTokens: number
 }
 
 export interface UsageState {
-	freeRemaining: number;
-	tokenBalance: number;
-	weekResetDate: string | null;
-	activeCode: string | null;
-	activeCodes: CodeBalance[];
+  freeRemaining: number
+  tokenBalance: number
+  weekResetDate: string | null
+  activeCode: string | null
+  activeCodes: CodeBalance[]
 }
 
 type UsageSyncMessage =
-	| { type: 'USAGE_UPDATED'; payload: UsageState }
-	| { type: 'CODE_REDEEMED'; payload: { code: string; balance: number; activeCodes: CodeBalance[] } };
+  | { type: "USAGE_UPDATED"; payload: UsageState }
+  | {
+      type: "CODE_REDEEMED"
+      payload: { code: string; balance: number; activeCodes: CodeBalance[] }
+    }
 
-const CHANNEL_NAME = 'usage-sync';
+const CHANNEL_NAME = "usage-sync"
 
 function createUsageStore() {
-	let state = $state<UsageState>({
-		freeRemaining: 3,
-		tokenBalance: 0,
-		weekResetDate: null,
-		activeCode: null,
-		activeCodes: []
-	});
-	let loading = $state(true);
-	let error = $state<string | null>(null);
+  let state = $state<UsageState>({
+    freeRemaining: 3,
+    tokenBalance: 0,
+    weekResetDate: null,
+    activeCode: null,
+    activeCodes: [],
+  })
+  let loading = $state(true)
+  let error = $state<string | null>(null)
 
-	let channel: BroadcastChannel | null = null;
+  let channel: BroadcastChannel | null = null
 
-	function setupSync() {
-		if (!browser || channel) return;
+  function setupSync() {
+    if (!browser || channel) return
 
-		channel = new BroadcastChannel(CHANNEL_NAME);
-		channel.onmessage = (event: MessageEvent<UsageSyncMessage>) => {
-			const message = event.data;
-			switch (message.type) {
-				case 'USAGE_UPDATED':
-					state = message.payload;
-					break;
-				case 'CODE_REDEEMED':
-					state = {
-						...state,
-						tokenBalance: message.payload.balance,
-						activeCode: message.payload.code,
-						activeCodes: message.payload.activeCodes,
-						freeRemaining: 0 // Tokens replace free tier
-					};
-					break;
-			}
-		};
-	}
+    channel = new BroadcastChannel(CHANNEL_NAME)
+    channel.onmessage = (event: MessageEvent<UsageSyncMessage>) => {
+      const message = event.data
+      switch (message.type) {
+        case "USAGE_UPDATED":
+          state = message.payload
+          break
+        case "CODE_REDEEMED":
+          state = {
+            ...state,
+            tokenBalance: message.payload.balance,
+            activeCode: message.payload.code,
+            activeCodes: message.payload.activeCodes,
+            freeRemaining: 0, // Tokens replace free tier
+          }
+          break
+      }
+    }
+  }
 
-	function broadcast(message: UsageSyncMessage) {
-		channel?.postMessage(message);
-	}
+  function broadcast(message: UsageSyncMessage) {
+    channel?.postMessage(message)
+  }
 
-	return {
-		get state() {
-			return state;
-		},
-		get loading() {
-			return loading;
-		},
-		get error() {
-			return error;
-		},
+  return {
+    get state() {
+      return state
+    },
+    get loading() {
+      return loading
+    },
+    get error() {
+      return error
+    },
 
-		get canGenerate() {
-			return state.tokenBalance > 0 || state.freeRemaining > 0;
-		},
+    get canGenerate() {
+      return state.tokenBalance > 0 || state.freeRemaining > 0
+    },
 
-		get usingTokens() {
-			return state.tokenBalance > 0;
-		},
+    get usingTokens() {
+      return state.tokenBalance > 0
+    },
 
-		get remainingCount() {
-			return state.tokenBalance > 0 ? state.tokenBalance : state.freeRemaining;
-		},
+    get remainingCount() {
+      return state.tokenBalance > 0 ? state.tokenBalance : state.freeRemaining
+    },
 
-		async fetchUsage(fingerprint: string) {
-			if (!browser) return;
+    async fetchUsage(fingerprint: string) {
+      if (!browser) return
 
-			setupSync();
-			loading = true;
-			error = null;
+      setupSync()
+      loading = true
+      error = null
 
-			try {
-				const res = await fetch(`/api/usage?fp=${encodeURIComponent(fingerprint)}`);
-				if (!res.ok) throw new Error('Failed to fetch usage');
+      try {
+        const res = await fetch(
+          `/api/usage?fp=${encodeURIComponent(fingerprint)}`,
+        )
+        if (!res.ok) throw new Error("Failed to fetch usage")
 
-				const data: UsageState = await res.json();
-				state = data;
-				broadcast({ type: 'USAGE_UPDATED', payload: data });
-			} catch (e) {
-				console.error('Usage fetch error:', e);
-				error = 'Could not load usage data';
-			} finally {
-				loading = false;
-			}
-		},
+        const data: UsageState = await res.json()
+        state = data
+        broadcast({ type: "USAGE_UPDATED", payload: data })
+      } catch (e) {
+        console.error("Usage fetch error:", e)
+        error = "Could not load usage data"
+      } finally {
+        loading = false
+      }
+    },
 
-		decrementUsage() {
-			if (state.tokenBalance > 0) {
-				state = { ...state, tokenBalance: state.tokenBalance - 1 };
-			} else if (state.freeRemaining > 0) {
-				state = { ...state, freeRemaining: state.freeRemaining - 1 };
-			}
-			broadcast({ type: 'USAGE_UPDATED', payload: state });
-		},
+    decrementUsage() {
+      if (state.tokenBalance > 0) {
+        state = { ...state, tokenBalance: state.tokenBalance - 1 }
+      } else if (state.freeRemaining > 0) {
+        state = { ...state, freeRemaining: state.freeRemaining - 1 }
+      }
+      broadcast({ type: "USAGE_UPDATED", payload: state })
+    },
 
-		setTokenBalance(balance: number, code: string, activeCodes: CodeBalance[]) {
-			state = {
-				...state,
-				tokenBalance: balance,
-				activeCode: code,
-				activeCodes,
-				freeRemaining: 0 // Tokens replace free tier
-			};
-			broadcast({ type: 'CODE_REDEEMED', payload: { code, balance, activeCodes } });
-		},
+    setTokenBalance(balance: number, code: string, activeCodes: CodeBalance[]) {
+      state = {
+        ...state,
+        tokenBalance: balance,
+        activeCode: code,
+        activeCodes,
+        freeRemaining: 0, // Tokens replace free tier
+      }
+      broadcast({
+        type: "CODE_REDEEMED",
+        payload: { code, balance, activeCodes },
+      })
+    },
 
-		updateFromServer(data: UsageState) {
-			state = data;
-			broadcast({ type: 'USAGE_UPDATED', payload: data });
-		},
+    updateFromServer(data: UsageState) {
+      state = data
+      broadcast({ type: "USAGE_UPDATED", payload: data })
+    },
 
-		destroy() {
-			channel?.close();
-			channel = null;
-		}
-	};
+    destroy() {
+      channel?.close()
+      channel = null
+    },
+  }
 }
 
-export const usageStore = createUsageStore();
+export const usageStore = createUsageStore()

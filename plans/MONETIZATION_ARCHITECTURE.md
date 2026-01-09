@@ -17,6 +17,7 @@ A freemium model with weekly free credits and one-time token pack purchases. No 
 **Region:** EU (Frankfurt)
 
 **Rationale:**
+
 - Teachers need expense receipts → requires queryable purchase history
 - Refund handling needs transactional integrity (ACID)
 - Future features (bulk school pricing, referrals) easier to add
@@ -24,15 +25,18 @@ A freemium model with weekly free credits and one-time token pack purchases. No 
 - Drizzle provides excellent TypeScript DX
 
 **Why EU region:**
+
 - GDPR simpler — no cross-border data transfer documentation for EU users
 - ~40% of users expected from EU (VAT regions)
 - Stripe handles payment data separately anyway
 - Vercel functions can be configured to `fra1` (Frankfurt) to minimize latency
 
 **Environment:**
+
 - `DATABASE_URL` in `.env` (connection string from Neon)
 
 **Rejected alternatives:**
+
 - Redis/Upstash: Limited querying, poor for audit trails and receipts
 - US region: Would require GDPR data transfer documentation
 
@@ -43,6 +47,7 @@ A freemium model with weekly free credits and one-time token pack purchases. No 
 **Decision:** Deploy on Vercel.
 
 **Rationale:**
+
 - Existing SvelteKit support
 - Built-in DDoS protection
 - Serverless functions for API routes
@@ -55,17 +60,20 @@ A freemium model with weekly free credits and one-time token pack purchases. No 
 **Decision:** Use FingerprintJS open-source library for device identification.
 
 **Rationale:**
+
 - Purely client-side library, no external service or account needed
 - Combines ~20+ signals (canvas, audio, fonts, screen) for stable ID
 - Free and self-contained
 - ~1 in 286,777 browser uniqueness
 
 **Rejected alternatives:**
+
 - Vercel's x-vercel-ja4-digest: TLS fingerprint only identifies browser+OS combinations, not individual users (thousands share same hash)
 - FingerprintJS Pro: Requires paid account, unnecessary for our needs
 - Custom solution: Less robust, more maintenance
 
 **Installation:**
+
 ```bash
 pnpm add @fingerprintjs/fingerprintjs
 ```
@@ -77,6 +85,7 @@ pnpm add @fingerprintjs/fingerprintjs
 **Decision:** Use Stripe as primary payment provider with PayPal enabled through Stripe's payment methods.
 
 **Rationale:**
+
 - Single integration handles both payment methods
 - Single webhook endpoint
 - Stripe Tax handles VAT automatically
@@ -84,6 +93,7 @@ pnpm add @fingerprintjs/fingerprintjs
 - Simplifies v1 implementation
 
 **Rejected alternatives:**
+
 - Direct PayPal integration: More code, separate webhooks, separate balance—can add later if needed for other regions
 
 ---
@@ -93,6 +103,7 @@ pnpm add @fingerprintjs/fingerprintjs
 **Decision:** Use Stripe Tax for automatic VAT calculation and collection.
 
 **Rationale:**
+
 - Automatic VAT calculation based on customer location
 - Handles EU VAT requirements
 - VAT-inclusive pricing (same price displayed everywhere)
@@ -105,12 +116,14 @@ pnpm add @fingerprintjs/fingerprintjs
 **Decision:** Require email at checkout, let Stripe handle receipt delivery.
 
 **Rationale:**
+
 - Stripe Checkout collects email
 - Stripe sends automatic receipts with redemption code in metadata
 - No separate email provider needed
 - Guarantees recovery path for all purchases
 
 **Rejected alternatives:**
+
 - Optional email: Complicates recovery, no real benefit
 - Separate email provider (Resend, SendGrid): Unnecessary complexity
 
@@ -123,6 +136,7 @@ pnpm add @fingerprintjs/fingerprintjs
 **Example:** `COLOR-A7X9-B3M2`
 
 **Rationale:**
+
 - Human-readable and easy to type
 - Checksum prevents typos from being accepted
 - ~2.8 billion combinations (sufficient entropy)
@@ -135,6 +149,7 @@ pnpm add @fingerprintjs/fingerprintjs
 **Decision:** Save code to localStorage immediately on checkout success, with Stripe email as backup.
 
 **Flow:**
+
 1. User completes Stripe Checkout
 2. Stripe redirects to `/checkout/success?session_id=cs_xxx`
 3. Success page fetches session, extracts code from metadata
@@ -143,6 +158,7 @@ pnpm add @fingerprintjs/fingerprintjs
 6. Stripe sends email receipt async (with same code)
 
 **Rationale:**
+
 - User has code instantly (no waiting for email)
 - Email provides recovery if localStorage cleared
 - No custom email infrastructure needed
@@ -154,6 +170,7 @@ pnpm add @fingerprintjs/fingerprintjs
 **Decision:** Recovery is via the Stripe email receipt containing the redemption code.
 
 **Rationale:**
+
 - Email is required at checkout → receipt always sent
 - Redemption code included in receipt metadata
 - Zero support burden
@@ -166,6 +183,7 @@ pnpm add @fingerprintjs/fingerprintjs
 **Decision:** Do not implement dedicated rate limiting infrastructure.
 
 **Rationale:**
+
 - DDoS protection: Handled by Vercel automatically
 - Image generation abuse: Gated by token system (free tier limit + paid balance)
 - Code guessing: Prevented by checksum + entropy (~2.8B combinations)
@@ -192,6 +210,7 @@ The token system IS the rate limiting for the expensive operation.
 Once a user redeems a code, they no longer receive weekly free images. Their balance is purely their purchased tokens.
 
 **Rationale:**
+
 - Simpler UX — one number to track ("You have 47 images")
 - 3 free/week = ~$0.12 value, negligible compared to $4.99+ purchase
 - Reduces ongoing cost of supporting paying users
@@ -203,6 +222,7 @@ Once a user redeems a code, they no longer receive weekly free images. Their bal
 If a user enters a second code, the token counts add together.
 
 **Rationale:**
+
 - User-friendly for teachers buying multiple packs
 - No tokens are "wasted"
 
@@ -221,11 +241,13 @@ If a user enters a second code, the token counts add together.
 **Decision:** Accept the risk for now.
 
 Users who clear browser data get a fresh fingerprint and new free tier. This is acceptable because:
+
 - Cost per abuse: ~$0.12/week
 - Effort required: Clear all browser data weekly
 - Most users won't bother
 
 **Future improvement:** Add IP-based tracking if abuse becomes measurable. Noted but deferred due to:
+
 - Privacy implications of storing IPs
 - VPNs make it easy to bypass anyway
 
@@ -241,12 +263,12 @@ Use existing BroadcastChannel pattern (already used for gallery) to sync token s
 
 ### Tables Needed
 
-| Table | Purpose |
-|-------|---------|
-| `devices` | Track free tier usage per device fingerprint |
-| `redemption_codes` | Store codes with token balances |
-| `purchases` | Purchase history for receipts and auditing |
-| `generations` | Track individual image generations |
+| Table              | Purpose                                      |
+| ------------------ | -------------------------------------------- |
+| `devices`          | Track free tier usage per device fingerprint |
+| `redemption_codes` | Store codes with token balances              |
+| `purchases`        | Purchase history for receipts and auditing   |
+| `generations`      | Track individual image generations           |
 
 ### Free Tier Tracking
 
@@ -264,13 +286,13 @@ Use existing BroadcastChannel pattern (already used for gallery) to sync token s
 
 ## API Routes Overview
 
-| Route | Method | Purpose |
-|-------|--------|---------|
-| `/api/usage` | GET | Check free tier remaining |
-| `/api/generate` | POST | Generate image (checks tokens) |
-| `/api/redeem` | POST | Redeem code, load balance |
-| `/api/checkout` | POST | Create Stripe checkout session |
-| `/api/webhooks/stripe` | POST | Handle Stripe webhooks |
+| Route                  | Method | Purpose                        |
+| ---------------------- | ------ | ------------------------------ |
+| `/api/usage`           | GET    | Check free tier remaining      |
+| `/api/generate`        | POST   | Generate image (checks tokens) |
+| `/api/redeem`          | POST   | Redeem code, load balance      |
+| `/api/checkout`        | POST   | Create Stripe checkout session |
+| `/api/webhooks/stripe` | POST   | Handle Stripe webhooks         |
 
 ---
 
@@ -317,11 +339,11 @@ Checksum: Final character is a check digit (Luhn algorithm or similar).
 
 ### Environment Variables
 
-| Variable | Purpose |
-|----------|---------|
-| `DATABASE_URL` | Neon connection string |
-| `STRIPE_SECRET_KEY` | Stripe API key |
-| `STRIPE_WEBHOOK_SECRET` | Webhook signature verification |
+| Variable                 | Purpose                        |
+| ------------------------ | ------------------------------ |
+| `DATABASE_URL`           | Neon connection string         |
+| `STRIPE_SECRET_KEY`      | Stripe API key                 |
+| `STRIPE_WEBHOOK_SECRET`  | Webhook signature verification |
 | `STRIPE_PUBLISHABLE_KEY` | Client-side Stripe.js (public) |
 
 ---
@@ -337,4 +359,4 @@ Checksum: Final character is a check digit (Luhn algorithm or similar).
 
 ---
 
-*Last updated: January 2025*
+_Last updated: January 2025_

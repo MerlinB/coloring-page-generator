@@ -8,6 +8,7 @@
 <script lang="ts">
   import { Image, Download, Printer, Pencil } from "@lucide/svelte"
   import { printImage as doPrint } from "$lib/utils/print"
+  import * as m from "$lib/paraglide/messages"
 
   interface Props {
     imageData: string | null
@@ -43,12 +44,12 @@
           type="button"
           onclick={() => onexpand()}
           class="block w-full cursor-zoom-in"
-          aria-label="View full size"
+          aria-label={m.viewer_view_full_size()}
         >
           <img
             bind:this={imageEl}
             src="data:image/png;base64,{imageData}"
-            alt="Coloring page: {prompt}"
+            alt={m.viewer_alt_text({ prompt })}
             class="h-auto w-full"
           />
         </button>
@@ -56,49 +57,51 @@
         <img
           bind:this={imageEl}
           src="data:image/png;base64,{imageData}"
-          alt="Coloring page: {prompt}"
+          alt={m.viewer_alt_text({ prompt })}
           class="h-auto w-full"
         />
       {/if}
 
       <!-- Action buttons (bottom right, floating individually) -->
-      <div class="absolute bottom-3 right-3 flex gap-2">
+      <div class="absolute right-3 bottom-3 flex gap-2">
         {#if onedit}
           <button
             type="button"
-            title="Edit"
+            title={m.viewer_edit()}
             onclick={() => onedit()}
             class="flex h-10 w-10 items-center justify-center rounded-full border-2 border-lavender-200 bg-lavender-50 text-lavender-700 shadow-md backdrop-blur-sm transition-transform hover:scale-105 active:scale-[0.98] sm:h-auto sm:w-auto sm:gap-2 sm:px-4 sm:py-2"
           >
             <Pencil class="h-5 w-5" />
-            <span class="hidden font-bold sm:inline">Edit</span>
+            <span class="hidden font-bold sm:inline">{m.viewer_edit()}</span>
           </button>
         {/if}
 
         <button
           type="button"
-          title="Download"
+          title={m.viewer_download()}
           onclick={() => downloadImage()}
           class="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md backdrop-blur-sm transition-transform hover:scale-105 active:scale-[0.98] sm:h-auto sm:w-auto sm:gap-2 sm:px-4 sm:py-2"
         >
           <Download class="h-5 w-5" />
-          <span class="hidden font-bold sm:inline">Download</span>
+          <span class="hidden font-bold sm:inline">{m.viewer_download()}</span>
         </button>
 
         <button
           type="button"
-          title="Print"
+          title={m.viewer_print()}
           onclick={() => printImage()}
-          class="flex h-10 w-10 items-center justify-center rounded-full border-2 border-gold-200 bg-secondary text-secondary-foreground shadow-md backdrop-blur-sm transition-transform hover:scale-105 active:scale-[0.98] sm:h-auto sm:w-auto sm:gap-2 sm:py-2 sm:px-4"
+          class="flex h-10 w-10 items-center justify-center rounded-full border-2 border-gold-200 bg-secondary text-secondary-foreground shadow-md backdrop-blur-sm transition-transform hover:scale-105 active:scale-[0.98] sm:h-auto sm:w-auto sm:gap-2 sm:px-4 sm:py-2"
         >
           <Printer class="h-5 w-5" />
-          <span class="hidden font-bold sm:inline">Print</span>
+          <span class="hidden font-bold sm:inline">{m.viewer_print()}</span>
         </button>
       </div>
     </div>
 
     <!-- Title below image -->
-    <p class="mt-3 line-clamp-2 text-center font-display text-lg text-coral-700 sm:text-left">
+    <p
+      class="mt-3 line-clamp-2 text-center font-display text-lg text-coral-700 sm:text-left"
+    >
       "{prompt}"
     </p>
   </div>
@@ -112,10 +115,10 @@
       <Image class="h-12 w-12 text-coral-300" />
     </div>
     <p class="font-display text-xl text-coral-400">
-      Your coloring page will appear here!
+      {m.viewer_placeholder_title()}
     </p>
     <p class="mt-2 text-muted-foreground">
-      Enter a prompt below to get started
+      {m.viewer_placeholder_hint()}
     </p>
   </div>
 {/if}

@@ -23,6 +23,7 @@
   import type { GalleryImage } from "$lib/types"
   import { untrack } from "svelte"
   import { printImage as doPrint } from "$lib/utils/print"
+  import * as m from "$lib/paraglide/messages"
 
   interface Props {
     images: GalleryImage[]
@@ -51,7 +52,12 @@
   let currentImage = $derived(images[currentIndex])
   let hasPrev = $derived(currentIndex > 0)
   let hasNext = $derived(currentIndex < images.length - 1)
-  let positionText = $derived(`${currentIndex + 1} of ${images.length}`)
+  let positionText = $derived(
+    m.lightbox_position({
+      current: String(currentIndex + 1),
+      total: String(images.length),
+    }),
+  )
 
   // Navigation
   function navigatePrev() {
@@ -184,7 +190,7 @@
     bind:this={dialogEl}
     role="dialog"
     aria-modal="true"
-    aria-label="Image viewer"
+    aria-label={m.lightbox_label()}
     tabindex="-1"
     class="relative flex h-full w-full max-w-5xl flex-col items-center justify-center outline-none"
     ontouchstart={(e) => handleTouchStart(e)}
@@ -195,7 +201,7 @@
     <button
       type="button"
       onclick={() => onclose()}
-      aria-label="Close"
+      aria-label={m.lightbox_close()}
       class="absolute top-0 right-0 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
     >
       <X class="h-6 w-6" />
@@ -206,7 +212,7 @@
       <button
         type="button"
         onclick={() => navigatePrev()}
-        aria-label="Previous image"
+        aria-label={m.lightbox_previous()}
         class="absolute top-1/2 left-0 z-10 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 sm:left-4"
       >
         <ChevronLeft class="h-8 w-8" />
@@ -218,7 +224,7 @@
       <button
         type="button"
         onclick={() => navigateNext()}
-        aria-label="Next image"
+        aria-label={m.lightbox_next()}
         class="absolute top-1/2 right-0 z-10 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 sm:right-4"
       >
         <ChevronRight class="h-8 w-8" />
@@ -232,7 +238,7 @@
           <img
             bind:this={imageEl}
             src="data:image/png;base64,{currentImage.imageData}"
-            alt="Coloring page: {currentImage.prompt}"
+            alt={m.viewer_alt_text({ prompt: currentImage.prompt })}
             class="max-h-[70vh] w-auto object-contain"
           />
         </div>
@@ -259,7 +265,7 @@
           <button
             type="button"
             onclick={() => onedit(currentImage)}
-            aria-label="Edit"
+            aria-label={m.viewer_edit()}
             class="flex h-11 w-11 items-center justify-center rounded-full bg-lavender-500/80 text-white transition-colors hover:bg-lavender-500"
           >
             <Pencil class="h-5 w-5" />
@@ -269,7 +275,7 @@
         <button
           type="button"
           onclick={() => downloadImage()}
-          aria-label="Download"
+          aria-label={m.viewer_download()}
           class="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
         >
           <Download class="h-5 w-5" />
@@ -278,7 +284,7 @@
         <button
           type="button"
           onclick={() => printImage()}
-          aria-label="Print"
+          aria-label={m.viewer_print()}
           class="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
         >
           <Printer class="h-5 w-5" />
@@ -287,7 +293,7 @@
         <button
           type="button"
           onclick={() => deleteImage()}
-          aria-label="Delete"
+          aria-label={m.lightbox_delete()}
           class="flex h-11 w-11 items-center justify-center rounded-full bg-destructive/80 text-white transition-colors hover:bg-destructive"
         >
           <Trash2 class="h-5 w-5" />

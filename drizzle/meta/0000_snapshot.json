@@ -73,9 +73,7 @@
         "devices_fingerprint_unique": {
           "name": "devices_fingerprint_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "fingerprint"
-          ]
+          "columns": ["fingerprint"]
         }
       },
       "policies": {},
@@ -162,12 +160,8 @@
           "name": "generations_redemption_code_id_redemption_codes_id_fk",
           "tableFrom": "generations",
           "tableTo": "redemption_codes",
-          "columnsFrom": [
-            "redemption_code_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["redemption_code_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -294,9 +288,7 @@
         "purchases_stripe_session_id_unique": {
           "name": "purchases_stripe_session_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "stripe_session_id"
-          ]
+          "columns": ["stripe_session_id"]
         }
       },
       "policies": {},
@@ -401,12 +393,8 @@
           "name": "redemption_codes_purchase_id_purchases_id_fk",
           "tableFrom": "redemption_codes",
           "tableTo": "purchases",
-          "columnsFrom": [
-            "purchase_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["purchase_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -416,9 +404,7 @@
         "redemption_codes_code_unique": {
           "name": "redemption_codes_code_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "code"
-          ]
+          "columns": ["code"]
         }
       },
       "policies": {},
@@ -430,12 +416,7 @@
     "public.purchase_status": {
       "name": "purchase_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "completed",
-        "refunded",
-        "partially_refunded"
-      ]
+      "values": ["pending", "completed", "refunded", "partially_refunded"]
     }
   },
   "schemas": {},

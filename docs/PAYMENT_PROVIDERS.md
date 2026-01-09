@@ -4,35 +4,35 @@ Comparison of realistic options for one-time token pack purchases ($5-$20 range)
 
 ## Overview
 
-| Provider | Fee | MoR | Tax Handling | PayPal Support |
-|----------|-----|-----|--------------|----------------|
-| **Stripe** | 2.9% + $0.30 | No | DIY | Separate integration |
-| **LemonSqueezy** | 5% + $0.50 | Yes | Included | Built-in |
-| **PayPal** | 3.49% + $0.49 | No | DIY | Native |
+| Provider         | Fee           | MoR | Tax Handling | PayPal Support       |
+| ---------------- | ------------- | --- | ------------ | -------------------- |
+| **Stripe**       | 2.9% + $0.30  | No  | DIY          | Separate integration |
+| **LemonSqueezy** | 5% + $0.50    | Yes | Included     | Built-in             |
+| **PayPal**       | 3.49% + $0.49 | No  | DIY          | Native               |
 
 MoR = Merchant of Record (handles VAT/sales tax globally on your behalf)
 
 ## Fee Impact on Token Packs
 
-| Pack | Price | Stripe | LemonSqueezy | PayPal |
-|------|-------|--------|--------------|--------|
-| Starter | $4.99 | $0.44 (8.9%) | $0.75 (15.0%) | $0.66 (13.3%) |
-| Family | $9.99 | $0.59 (5.9%) | $1.00 (10.0%) | $0.84 (8.4%) |
-| Classroom | $19.99 | $0.88 (4.4%) | $1.50 (7.5%) | $1.19 (5.9%) |
+| Pack      | Price  | Stripe       | LemonSqueezy  | PayPal        |
+| --------- | ------ | ------------ | ------------- | ------------- |
+| Starter   | $4.99  | $0.44 (8.9%) | $0.75 (15.0%) | $0.66 (13.3%) |
+| Family    | $9.99  | $0.59 (5.9%) | $1.00 (10.0%) | $0.84 (8.4%)  |
+| Classroom | $19.99 | $0.88 (4.4%) | $1.50 (7.5%)  | $1.19 (5.9%)  |
 
 ## Payment Methods
 
-| Method | Stripe | LemonSqueezy | PayPal |
-|--------|--------|--------------|--------|
-| Credit/Debit Cards | Yes | Yes | Yes |
-| Apple Pay | Yes | Yes | No |
-| Google Pay | Yes | Yes | No |
-| PayPal | No* | Yes | Yes |
-| Bank/ACH | Yes | Yes | Yes |
-| PayPal Balance | No | Yes | Yes |
-| Venmo (US) | No | No | Yes |
+| Method             | Stripe | LemonSqueezy | PayPal |
+| ------------------ | ------ | ------------ | ------ |
+| Credit/Debit Cards | Yes    | Yes          | Yes    |
+| Apple Pay          | Yes    | Yes          | No     |
+| Google Pay         | Yes    | Yes          | No     |
+| PayPal             | No\*   | Yes          | Yes    |
+| Bank/ACH           | Yes    | Yes          | Yes    |
+| PayPal Balance     | No     | Yes          | Yes    |
+| Venmo (US)         | No     | No           | Yes    |
 
-*Stripe can add PayPal but requires separate integration
+\*Stripe can add PayPal but requires separate integration
 
 ## Stripe
 
@@ -67,11 +67,11 @@ MoR = Merchant of Record (handles VAT/sales tax globally on your behalf)
 
 ## Recommendation
 
-| Approach | Pros | Cons |
-|----------|------|------|
+| Approach              | Pros                                                 | Cons                             |
+| --------------------- | ---------------------------------------------------- | -------------------------------- |
 | **LemonSqueezy only** | Single integration, all payment methods, tax handled | Highest fees (15% on $4.99 pack) |
-| **Stripe only** | Lowest fees, clean UX | No PayPal, tax DIY |
-| **Stripe + PayPal** | Low fees + PayPal coverage | Two integrations to maintain |
+| **Stripe only**       | Lowest fees, clean UX                                | No PayPal, tax DIY               |
+| **Stripe + PayPal**   | Low fees + PayPal coverage                           | Two integrations to maintain     |
 
 **For MVP:** LemonSqueezy offers the fastest path to accepting payments with broadest coverage. Fees are high but simplicity has value.
 

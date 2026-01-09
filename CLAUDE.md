@@ -52,6 +52,85 @@ All components use `@lucide/svelte` for icons.
 - `ImageViewer.svelte` - Shows current image with download/print actions, or placeholder when empty
 - `GalleryItem.svelte` - Individual gallery thumbnail with delete button
 - `Gallery.svelte` - Responsive grid of previously generated images
+- `LanguageSwitcher.svelte` - Language toggle linking to localized domains
+
+## Internationalization (i18n)
+
+The app uses `@inlang/paraglide-js` for localization with domain-based locale detection.
+
+### Domains
+
+| Domain                      | Locale | Description           |
+| --------------------------- | ------ | --------------------- |
+| `makecoloringpages.com`     | `en`   | English (base locale) |
+| `ausmalbilder-generator.de` | `de`   | German                |
+
+### Key Files
+
+- `project.inlang/settings.json` - Paraglide project config (locales, modules)
+- `messages/en.json` - English translations (source)
+- `messages/de.json` - German translations
+- `src/lib/paraglide/` - Auto-generated runtime (do not edit)
+- `src/lib/i18n/domains.ts` - Domain-locale mappings and helpers
+- `src/hooks.server.ts` - Domain-to-locale detection + paraglide middleware
+- `src/hooks.ts` - URL rerouting for locale paths
+- `src/lib/components/LanguageSwitcher.svelte` - Domain-based language toggle
+
+### Domain Detection
+
+Locale is determined by hostname via `src/lib/i18n/domains.ts`:
+
+- `makecoloringpages.com` → English
+- `ausmalbilder-generator.de` → German
+- `localhost` → English (development)
+
+The domain-to-locale mapping is centralized in `src/lib/i18n/domains.ts` and used by:
+
+- `src/hooks.server.ts` for server-side locale detection
+- `LanguageSwitcher.svelte` for cross-domain language links
+- `+layout.svelte` for hreflang SEO tags
+
+The language switcher links directly to the other domain (not URL paths) to avoid duplicate content.
+
+### Adding a New Language
+
+1. Add locale to `project.inlang/settings.json`:
+
+   ```json
+   "locales": ["en", "de", "fr"]
+   ```
+
+2. Create translation file `messages/fr.json` (copy from `en.json` and translate)
+
+3. Add language name to message files:
+
+   ```json
+   "language_fr": "Français"
+   ```
+
+4. Update `LanguageSwitcher.svelte` to include the new language
+
+5. Add domain mapping in `src/lib/i18n/domains.ts`:
+
+   ```typescript
+   // In DOMAIN_LOCALE_MAP
+   'coloriages-enfants.fr': 'fr',
+
+   // In LOCALE_DOMAIN_MAP
+   fr: 'https://www.coloriages-enfants.fr'
+   ```
+
+6. Point the new domain to the same hosting
+
+### Using Messages in Components
+
+```svelte
+<script>
+  import * as m from "$lib/paraglide/messages"
+</script>
+
+<h1>{m.site_title()}</h1><p>{m.usage_images_remaining({ count: "5" })}</p>
+```
 
 ## Design Guidelines
 
@@ -177,6 +256,7 @@ Example usage:
 ## Environment
 
 Required in `.env`:
+
 - `GEMINI_API_KEY` - Google Gemini API key
 - `DATABASE_URL` - Neon PostgreSQL connection string
 - `STRIPE_SECRET_KEY` - Stripe secret key
@@ -187,8 +267,8 @@ Required in `.env`:
 
 API quotas configured in Google Cloud Console (IAM & Admin → Quotas & System Limits):
 
-| Quota | Model | Limit |
-|-------|-------|-------|
+| Quota                                         | Model            | Limit |
+| --------------------------------------------- | ---------------- | ----- |
 | Request limit per model per day for a project | gemini-2.5-flash | 1,000 |
 
 ## Important Conventions

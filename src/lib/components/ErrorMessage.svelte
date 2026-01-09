@@ -6,6 +6,7 @@
 -->
 <script lang="ts">
   import { X } from "@lucide/svelte"
+  import * as m from "$lib/paraglide/messages"
 
   interface Props {
     message: string
@@ -26,6 +27,6 @@
     class="mt-2 inline-flex items-center gap-1 text-sm text-coral-600 transition-colors hover:text-coral-800"
   >
     <X class="h-4 w-4" />
-    Dismiss
+    {m.error_dismiss()}
   </button>
 </div>

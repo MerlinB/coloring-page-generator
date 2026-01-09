@@ -12,6 +12,7 @@
   } from "@lucide/svelte"
   import SuggestionChips from "./SuggestionChips.svelte"
   import type { PageFormat } from "$lib/types"
+  import * as m from "$lib/paraglide/messages"
 
   interface Props {
     disabled?: boolean
@@ -19,14 +20,14 @@
 
   let { disabled = false }: Props = $props()
 
-  const suggestions = [
-    "A friendly dragon",
-    "A magical unicorn",
-    "A cute puppy",
-    "A beautiful butterfly",
-    "A space rocket",
-    "A princess castle",
-  ]
+  const suggestions = $derived([
+    m.suggestion_dragon(),
+    m.suggestion_unicorn(),
+    m.suggestion_puppy(),
+    m.suggestion_butterfly(),
+    m.suggestion_rocket(),
+    m.suggestion_castle(),
+  ])
 
   let inputValue = $state("")
   let selectedFormat = $state<PageFormat>("portrait")
@@ -42,14 +43,14 @@
       for="prompt"
       class="mb-2 block font-display text-lg font-medium text-coral-700"
     >
-      What would you like to color?
+      {m.prompt_label()}
     </label>
     <input
       type="text"
       id="prompt"
       name="prompt"
       bind:value={inputValue}
-      placeholder="e.g., A happy elephant playing in the jungle"
+      placeholder={m.prompt_placeholder()}
       required
       maxlength="2000"
       {disabled}
@@ -61,7 +62,7 @@
 
   <div>
     <span class="mb-2 block font-display text-sm font-medium text-coral-700">
-      Page format
+      {m.prompt_format_label()}
     </span>
     <div class="flex gap-3">
       <input type="hidden" name="format" value={selectedFormat} />
@@ -77,7 +78,7 @@
         aria-pressed={selectedFormat === "portrait"}
       >
         <RectangleVertical class="h-8 w-6" strokeWidth={2} />
-        <span class="text-xs font-medium">Portrait</span>
+        <span class="text-xs font-medium">{m.prompt_format_portrait()}</span>
       </button>
 
       <button
@@ -91,7 +92,7 @@
         aria-pressed={selectedFormat === "landscape"}
       >
         <RectangleHorizontal class="h-6 w-8" strokeWidth={2} />
-        <span class="text-xs font-medium">Landscape</span>
+        <span class="text-xs font-medium">{m.prompt_format_landscape()}</span>
       </button>
     </div>
   </div>
@@ -106,7 +107,7 @@
       {disabled}
       class="h-5 w-5 rounded border-coral-300 text-coral-500 focus:ring-coral-400"
     />
-    <span class="text-gold-700">Kid-friendly (simpler, age-appropriate)</span>
+    <span class="text-gold-700">{m.prompt_kid_friendly()}</span>
   </label>
 
   <button
@@ -116,9 +117,9 @@
   >
     <WandSparkles class="h-6 w-6" />
     {#if disabled}
-      Creating...
+      {m.prompt_submitting()}
     {:else}
-      Create Coloring Page!
+      {m.prompt_submit()}
     {/if}
   </button>
 </div>

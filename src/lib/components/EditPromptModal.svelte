@@ -14,6 +14,7 @@
   import { X, Sparkles } from "@lucide/svelte"
   import type { GalleryImage } from "$lib/types"
   import { untrack } from "svelte"
+  import * as m from "$lib/paraglide/messages"
 
   interface Props {
     open: boolean
@@ -30,14 +31,14 @@
   let inputEl: HTMLInputElement | undefined = $state()
   let previouslyFocused: Element | null = null
 
-  const editSuggestions = [
-    "Add a butterfly",
-    "Make lines thicker",
-    "Add flowers",
-    "Add a rainbow",
-    "Make it simpler",
-    "Add stars",
-  ]
+  const editSuggestions = $derived([
+    m.edit_suggestion_butterfly(),
+    m.edit_suggestion_thicker(),
+    m.edit_suggestion_flowers(),
+    m.edit_suggestion_rainbow(),
+    m.edit_suggestion_simpler(),
+    m.edit_suggestion_stars(),
+  ])
 
   function handleSubmit() {
     if (editPrompt.trim()) {
@@ -119,13 +120,13 @@
           id="edit-modal-title"
           class="font-display text-xl font-bold text-coral-700"
         >
-          Edit Your Coloring Page
+          {m.edit_title()}
         </h2>
         <button
           type="button"
           onclick={() => onclose()}
           class="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
-          aria-label="Close"
+          aria-label={m.lightbox_close()}
         >
           <X class="h-5 w-5" />
         </button>
@@ -135,7 +136,7 @@
       <div class="mb-4 flex justify-center">
         <img
           src="data:image/png;base64,{image.imageData}"
-          alt="Coloring page to edit"
+          alt={m.edit_alt_text()}
           class="h-32 w-auto rounded-xl border-2 border-coral-100"
         />
       </div>
@@ -146,14 +147,14 @@
           for="edit-prompt"
           class="block font-display text-sm font-medium text-coral-700"
         >
-          What would you like to change?
+          {m.edit_label()}
         </label>
         <input
           type="text"
           id="edit-prompt"
           bind:this={inputEl}
           bind:value={editPrompt}
-          placeholder="e.g., Add a butterfly, make lines thicker"
+          placeholder={m.edit_placeholder()}
           maxlength="2000"
           {disabled}
           onkeydown={(e) => {
@@ -187,7 +188,7 @@
           {disabled}
           class="flex-1 rounded-full border-2 border-coral-200 px-4 py-3 font-bold text-coral-600 transition-colors hover:bg-coral-50 disabled:opacity-50"
         >
-          Cancel
+          {m.edit_cancel()}
         </button>
         <button
           type="button"
@@ -197,9 +198,9 @@
         >
           <Sparkles class="h-5 w-5" />
           {#if disabled}
-            Editing...
+            {m.edit_submitting()}
           {:else}
-            Apply Edit
+            {m.edit_submit()}
           {/if}
         </button>
       </div>

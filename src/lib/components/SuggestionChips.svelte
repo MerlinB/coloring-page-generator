@@ -8,6 +8,8 @@
   />
 -->
 <script lang="ts">
+  import * as m from "$lib/paraglide/messages"
+
   interface Props {
     suggestions: string[]
     onselect: (suggestion: string) => void
@@ -18,7 +20,7 @@
 </script>
 
 <div class="flex flex-wrap gap-2">
-  <span class="text-sm text-muted-foreground">Try:</span>
+  <span class="text-sm text-muted-foreground">{m.suggestion_try()}</span>
   {#each suggestions as suggestion (suggestion)}
     <button
       type="button"
