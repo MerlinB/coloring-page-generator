@@ -2,13 +2,27 @@
   @component Purchase success page - displays the redemption code after successful payment.
 -->
 <script lang="ts">
+  import { browser } from "$app/environment"
   import { Check, Copy, ArrowLeft } from "@lucide/svelte"
+  import { codesStore } from "$lib/stores/codes.svelte"
+  import { usageStore } from "$lib/stores/usage.svelte"
   import type { PageData } from "./$types"
   import * as m from "$lib/paraglide/messages"
 
   let { data }: { data: PageData } = $props()
 
   let copied = $state(false)
+  let codeSaved = $state(false)
+
+  // Automatically save the code to browser storage when page loads
+  $effect(() => {
+    if (browser && data.code && data.status === "active" && !codeSaved) {
+      codeSaved = true
+      codesStore.addCode(data.code).then(() => {
+        usageStore.fetchUsage()
+      })
+    }
+  })
 
   async function copyCode() {
     if (!data.code) return
