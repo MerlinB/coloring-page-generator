@@ -9,6 +9,20 @@ const FORMAT_TO_ASPECT_RATIO: Record<PageFormat, string> = {
 
 const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY })
 
+const API_TIMEOUT_MS = 30000
+
+/**
+ * Wraps a promise with a timeout.
+ */
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Request timed out")), ms),
+    ),
+  ])
+}
+
 // const MODEL = "gemini-3-pro-image-preview"
 const MODEL = "gemini-2.5-flash-image"
 
@@ -53,16 +67,19 @@ export async function generateColoringPage(
 
 Subject: ${userPrompt}`
 
-    const response = await ai.models.generateContent({
-      model: MODEL,
-      contents: enhancedPrompt,
-      config: {
-        responseModalities: ["TEXT", "IMAGE"],
-        imageConfig: {
-          aspectRatio: FORMAT_TO_ASPECT_RATIO[format],
+    const response = await withTimeout(
+      ai.models.generateContent({
+        model: MODEL,
+        contents: enhancedPrompt,
+        config: {
+          responseModalities: ["TEXT", "IMAGE"],
+          imageConfig: {
+            aspectRatio: FORMAT_TO_ASPECT_RATIO[format],
+          },
         },
-      },
-    })
+      }),
+      API_TIMEOUT_MS,
+    )
 
     const candidate = response.candidates?.[0]
     if (!candidate?.content?.parts) {
@@ -99,24 +116,27 @@ export async function editColoringPage(
       ? `${EDIT_BASE_PROMPT} ${editPrompt}${KID_FRIENDLY_ADDITIONS}`
       : `${EDIT_BASE_PROMPT} ${editPrompt}`
 
-    const response = await ai.models.generateContent({
-      model: MODEL,
-      contents: [
-        { text: prompt },
-        {
-          inlineData: {
-            mimeType: "image/png",
-            data: originalImageData,
+    const response = await withTimeout(
+      ai.models.generateContent({
+        model: MODEL,
+        contents: [
+          { text: prompt },
+          {
+            inlineData: {
+              mimeType: "image/png",
+              data: originalImageData,
+            },
+          },
+        ],
+        config: {
+          responseModalities: ["TEXT", "IMAGE"],
+          imageConfig: {
+            aspectRatio: FORMAT_TO_ASPECT_RATIO[format],
           },
         },
-      ],
-      config: {
-        responseModalities: ["TEXT", "IMAGE"],
-        imageConfig: {
-          aspectRatio: FORMAT_TO_ASPECT_RATIO[format],
-        },
-      },
-    })
+      }),
+      API_TIMEOUT_MS,
+    )
 
     const candidate = response.candidates?.[0]
     if (!candidate?.content?.parts) {

@@ -7,6 +7,7 @@
 <script lang="ts">
   import { Ticket, Check, AlertCircle } from "@lucide/svelte"
   import { usageStore } from "$lib/stores/usage.svelte"
+  import { codesStore } from "$lib/stores/codes.svelte"
   import * as m from "$lib/paraglide/messages"
 
   interface Props {
@@ -72,13 +73,12 @@
         return
       }
 
+      // Save code locally and refresh usage
+      await codesStore.addCode(data.code)
+      await usageStore.fetchUsage()
+
       success = true
-      usageStore.setTokenBalance(
-        data.totalBalance,
-        data.code,
-        data.activeCodes ?? [],
-      )
-      onsuccess?.(data.totalBalance)
+      onsuccess?.(data.remainingTokens)
     } catch {
       error = m.redeem_error_generic()
     } finally {

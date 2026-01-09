@@ -1,11 +1,20 @@
 import { json } from "@sveltejs/kit"
 import type { RequestHandler } from "./$types"
 import { generateColoringPage, editColoringPage } from "$lib/server/gemini"
-import {
-  consumeGeneration,
-  getUsageForDevice,
-} from "$lib/server/services/usage"
+import { getUsageWithCodes, consumeWithCodes } from "$lib/server/services/usage"
 import type { PageFormat } from "$lib/types"
+
+// Max base64 image size: ~5MB (base64 adds ~33% overhead, so ~3.75MB original)
+const MAX_IMAGE_DATA_LENGTH = 5 * 1024 * 1024
+
+/**
+ * Validates that a string is valid base64.
+ */
+function isValidBase64(str: string): boolean {
+  if (str.length === 0) return false
+  // Base64 can contain A-Z, a-z, 0-9, +, /, and = for padding
+  return /^[A-Za-z0-9+/]*={0,2}$/.test(str)
+}
 
 export const POST: RequestHandler = async ({ request, locals }) => {
   const fingerprint = locals.fingerprint
@@ -17,7 +26,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     editMode,
     sourceImageData,
     sourcePrompt,
+    codes: rawCodes,
   } = body
+
+  // Extract codes array from request
+  const codes: string[] = Array.isArray(rawCodes) ? rawCodes : []
 
   if (!prompt || typeof prompt !== "string") {
     return json(
@@ -39,8 +52,23 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     )
   }
 
-  // Check usage before generating
-  const usage = await getUsageForDevice(fingerprint)
+  // Validate sourceImageData if provided (edit mode)
+  if (editMode && sourceImageData) {
+    if (typeof sourceImageData !== "string") {
+      return json({ error: "Invalid image data format" }, { status: 400 })
+    }
+
+    if (sourceImageData.length > MAX_IMAGE_DATA_LENGTH) {
+      return json({ error: "Image too large (max 5MB)" }, { status: 400 })
+    }
+
+    if (!isValidBase64(sourceImageData)) {
+      return json({ error: "Invalid image encoding" }, { status: 400 })
+    }
+  }
+
+  // Check usage before generating (using client-provided codes)
+  const usage = await getUsageWithCodes(fingerprint, codes)
   if (usage.tokenBalance <= 0 && usage.freeRemaining <= 0) {
     return json(
       {
@@ -80,8 +108,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       )
     }
 
-    // Consume usage AFTER successful generation
-    const consumeResult = await consumeGeneration(fingerprint, trimmedPrompt)
+    // Consume usage AFTER successful generation (using client-provided codes)
+    const consumeResult = await consumeWithCodes(
+      fingerprint,
+      trimmedPrompt,
+      codes,
+    )
 
     if (!consumeResult.success) {
       // Generation succeeded but couldn't consume - log and allow it
@@ -89,7 +121,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     }
 
     // Get updated usage
-    const newUsage = await getUsageForDevice(fingerprint)
+    const newUsage = await getUsageWithCodes(fingerprint, codes)
 
     const finalPrompt =
       editMode && sourcePrompt

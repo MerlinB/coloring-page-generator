@@ -30,6 +30,15 @@ overwriteGetLocale(() => {
 })
 
 /**
+ * Request body size limits per endpoint (bytes).
+ * /api/generate allows larger bodies for base64 image editing.
+ */
+const BODY_SIZE_LIMITS: Record<string, number> = {
+  "/api/generate": 6 * 1024 * 1024, // 6MB for image editing
+  default: 64 * 1024, // 64KB for other endpoints
+}
+
+/**
  * Simple in-memory rate limiting.
  */
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
@@ -72,6 +81,37 @@ const localeHandle: Handle = ({ event, resolve }) => {
       transformPageChunk: ({ html }) => html.replace("%lang%", locale),
     })
   })
+}
+
+/**
+ * Request body size limit check.
+ * Rejects requests that exceed size limits before processing.
+ */
+const bodySizeHandle: Handle = async ({ event, resolve }) => {
+  const path = event.url.pathname
+
+  // Only check API POST requests
+  if (path.startsWith("/api/") && event.request.method === "POST") {
+    const contentLength = event.request.headers.get("content-length")
+    if (contentLength) {
+      const size = parseInt(contentLength, 10)
+      const limit = BODY_SIZE_LIMITS[path] ?? BODY_SIZE_LIMITS.default
+
+      if (size > limit) {
+        return new Response(
+          JSON.stringify({
+            error: "Request body too large",
+          }),
+          {
+            status: 413,
+            headers: { "Content-Type": "application/json" },
+          },
+        )
+      }
+    }
+  }
+
+  return resolve(event)
 }
 
 const rateLimitHandle: Handle = async ({ event, resolve }) => {
@@ -126,4 +166,32 @@ const fingerprintHandle: Handle = ({ event, resolve }) => {
   return resolve(event)
 }
 
-export const handle = sequence(localeHandle, fingerprintHandle, rateLimitHandle)
+/**
+ * Security headers for all responses.
+ */
+const securityHeadersHandle: Handle = async ({ event, resolve }) => {
+  const response = await resolve(event)
+
+  // Add security headers
+  response.headers.set("X-Content-Type-Options", "nosniff")
+  response.headers.set("X-Frame-Options", "DENY")
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin")
+  response.headers.set(
+    "Strict-Transport-Security",
+    "max-age=31536000; includeSubDomains",
+  )
+  response.headers.set(
+    "Content-Security-Policy",
+    "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; frame-src https://js.stripe.com; connect-src 'self' https://api.stripe.com",
+  )
+
+  return response
+}
+
+export const handle = sequence(
+  localeHandle,
+  bodySizeHandle,
+  fingerprintHandle,
+  rateLimitHandle,
+  securityHeadersHandle,
+)

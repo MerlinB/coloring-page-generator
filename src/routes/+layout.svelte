@@ -4,6 +4,7 @@
   import { gallery } from "$lib/stores/gallery.svelte"
   import { fingerprintStore } from "$lib/stores/fingerprint.svelte"
   import { usageStore } from "$lib/stores/usage.svelte"
+  import { codesStore } from "$lib/stores/codes.svelte"
   import { locales, getLocale } from "$lib/paraglide/runtime"
   import { buildDomainUrl, type Locale } from "$lib/i18n/domains"
   import "$lib/i18n/client" // Initialize client-side locale detection
@@ -24,14 +25,20 @@
   $effect(() => {
     if (browser) {
       gallery.initialize()
+      codesStore.initialize()
       // Initialize with server-provided fingerprint
       fingerprintStore.initialize(data.fingerprint)
     }
   })
 
-  // Fetch usage once fingerprint is ready
+  // Fetch usage once fingerprint and codes are ready
   $effect(() => {
-    if (browser && fingerprintStore.fingerprint && !fingerprintStore.loading) {
+    if (
+      browser &&
+      fingerprintStore.fingerprint &&
+      !fingerprintStore.loading &&
+      codesStore.initialized
+    ) {
       usageStore.fetchUsage()
     }
   })

@@ -2,6 +2,7 @@
   import { gallery } from "$lib/stores/gallery.svelte"
   import { fingerprintStore } from "$lib/stores/fingerprint.svelte"
   import { usageStore } from "$lib/stores/usage.svelte"
+  import { codesStore } from "$lib/stores/codes.svelte"
   import PromptForm from "$lib/components/PromptForm.svelte"
   import ImageViewer from "$lib/components/ImageViewer.svelte"
   import Gallery from "$lib/components/Gallery.svelte"
@@ -100,6 +101,7 @@
           prompt: formData.get("prompt"),
           format: formData.get("format"),
           kidFriendly: formData.get("kidFriendly") === "on",
+          codes: codesStore.codes,
         }),
       })
 
@@ -164,6 +166,7 @@
           editMode: true,
           sourceImageData: image.imageData,
           sourcePrompt: image.prompt,
+          codes: codesStore.codes,
         }),
       })
 

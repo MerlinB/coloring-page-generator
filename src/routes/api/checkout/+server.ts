@@ -78,8 +78,6 @@ export const POST: RequestHandler = async ({ request, url, locals }) => {
       metadata: {
         packType,
         tokens: pack.tokens.toString(),
-        fingerprint,
-        redemptionCode: code,
       },
     })
 

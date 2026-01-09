@@ -1,5 +1,6 @@
 import { browser } from "$app/environment"
 import { FREE_TIER_LIMIT } from "$lib/constants"
+import { codesStore } from "./codes.svelte"
 
 export interface CodeBalance {
   code: string
@@ -14,12 +15,7 @@ export interface UsageState {
   activeCodes: CodeBalance[]
 }
 
-type UsageSyncMessage =
-  | { type: "USAGE_UPDATED"; payload: UsageState }
-  | {
-      type: "CODE_REDEEMED"
-      payload: { code: string; balance: number; activeCodes: CodeBalance[] }
-    }
+type UsageSyncMessage = { type: "USAGE_UPDATED"; payload: UsageState }
 
 const CHANNEL_NAME = "usage-sync"
 
@@ -35,6 +31,7 @@ function createUsageStore() {
   let error = $state<string | null>(null)
 
   let channel: BroadcastChannel | null = null
+  let visibilityHandler: (() => void) | null = null
 
   function setupSync() {
     if (!browser || channel) return
@@ -42,25 +39,41 @@ function createUsageStore() {
     channel = new BroadcastChannel(CHANNEL_NAME)
     channel.onmessage = (event: MessageEvent<UsageSyncMessage>) => {
       const message = event.data
-      switch (message.type) {
-        case "USAGE_UPDATED":
-          state = message.payload
-          break
-        case "CODE_REDEEMED":
-          state = {
-            ...state,
-            tokenBalance: message.payload.balance,
-            activeCode: message.payload.code,
-            activeCodes: message.payload.activeCodes,
-            freeRemaining: 0, // Tokens replace free tier
-          }
-          break
+      if (message.type === "USAGE_UPDATED") {
+        state = message.payload
       }
     }
+
+    // Refresh usage when tab becomes visible
+    visibilityHandler = () => {
+      if (document.visibilityState === "visible") {
+        // Silently refresh usage in background with current codes
+        fetchUsageWithCodes(codesStore.codes)
+          .then((data) => {
+            if (data) state = data
+          })
+          .catch(() => {
+            // Ignore errors on background refresh
+          })
+      }
+    }
+    document.addEventListener("visibilitychange", visibilityHandler)
   }
 
   function broadcast(message: UsageSyncMessage) {
     channel?.postMessage(message)
+  }
+
+  async function fetchUsageWithCodes(
+    codes: string[],
+  ): Promise<UsageState | null> {
+    const res = await fetch("/api/usage", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ codes }),
+    })
+    if (!res.ok) return null
+    return res.json()
   }
 
   return {
@@ -94,10 +107,12 @@ function createUsageStore() {
       error = null
 
       try {
-        const res = await fetch("/api/usage")
-        if (!res.ok) throw new Error("Failed to fetch usage")
+        // Get codes from the codes store
+        const codes = codesStore.codes
+        const data = await fetchUsageWithCodes(codes)
 
-        const data: UsageState = await res.json()
+        if (!data) throw new Error("Failed to fetch usage")
+
         state = data
         broadcast({ type: "USAGE_UPDATED", payload: data })
       } catch (e) {
@@ -109,26 +124,22 @@ function createUsageStore() {
     },
 
     decrementUsage() {
+      // Bounds checking to prevent negative values
       if (state.tokenBalance > 0) {
-        state = { ...state, tokenBalance: state.tokenBalance - 1 }
+        state = {
+          ...state,
+          tokenBalance: Math.max(0, state.tokenBalance - 1),
+        }
       } else if (state.freeRemaining > 0) {
-        state = { ...state, freeRemaining: state.freeRemaining - 1 }
+        state = {
+          ...state,
+          freeRemaining: Math.max(0, state.freeRemaining - 1),
+        }
       }
-      broadcast({ type: "USAGE_UPDATED", payload: state })
-    },
-
-    setTokenBalance(balance: number, code: string, activeCodes: CodeBalance[]) {
-      state = {
-        ...state,
-        tokenBalance: balance,
-        activeCode: code,
-        activeCodes,
-        freeRemaining: 0, // Tokens replace free tier
+      // Broadcast update
+      if (state.tokenBalance >= 0 && state.freeRemaining >= 0) {
+        broadcast({ type: "USAGE_UPDATED", payload: state })
       }
-      broadcast({
-        type: "CODE_REDEEMED",
-        payload: { code, balance, activeCodes },
-      })
     },
 
     updateFromServer(data: UsageState) {
@@ -139,6 +150,10 @@ function createUsageStore() {
     destroy() {
       channel?.close()
       channel = null
+      if (visibilityHandler) {
+        document.removeEventListener("visibilitychange", visibilityHandler)
+        visibilityHandler = null
+      }
     },
   }
 }

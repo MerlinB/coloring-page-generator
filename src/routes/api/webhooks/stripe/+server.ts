@@ -60,14 +60,7 @@ export const POST: RequestHandler = async ({ request }) => {
         .set({ status: "active" })
         .where(eq(redemptionCodes.purchaseId, purchase.id))
 
-      // Get the code for logging
-      const existingCode = await db.query.redemptionCodes.findFirst({
-        where: eq(redemptionCodes.purchaseId, purchase.id),
-      })
-
-      console.log(
-        `Activated code ${existingCode?.code} for session ${session.id} (fingerprint: ${existingCode?.redeemedByFingerprint ?? "none"})`,
-      )
+      console.log("Activated redemption code for checkout session")
       break
     }
 
@@ -91,7 +84,7 @@ export const POST: RequestHandler = async ({ request }) => {
           .set({ status: "expired", updatedAt: new Date() })
           .where(eq(purchases.id, purchase.id))
 
-        console.log(`Cleaned up expired session ${session.id}`)
+        console.log("Cleaned up expired checkout session")
       }
       break
     }
@@ -107,7 +100,10 @@ export const POST: RequestHandler = async ({ request }) => {
         ),
       })
 
-      if (!purchase) break
+      if (!purchase) {
+        console.error("Purchase not found for refund webhook")
+        break
+      }
 
       const refundedTotal = charge.amount_refunded
       const isFullRefund = refundedTotal >= purchase.amountCents
@@ -128,7 +124,7 @@ export const POST: RequestHandler = async ({ request }) => {
           .set({ invalidatedAt: new Date() })
           .where(eq(redemptionCodes.purchaseId, purchase.id))
 
-        console.log(`Invalidated code for refunded purchase ${purchase.id}`)
+        console.log("Invalidated code for refunded purchase")
       }
       break
     }

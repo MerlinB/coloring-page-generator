@@ -7,8 +7,12 @@ import {
   formatRedemptionCode,
 } from "$lib/server/services/codes"
 
-export const POST: RequestHandler = async ({ request, locals }) => {
-  const fingerprint = locals.fingerprint
+/**
+ * POST /api/redeem
+ * Validate a redemption code and return its info.
+ * Client stores the code locally and sends it with future requests.
+ */
+export const POST: RequestHandler = async ({ request }) => {
   const body = await request.json()
   const { code } = body
 
@@ -46,51 +50,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     return json({ error: "This code has no remaining tokens" }, { status: 400 })
   }
 
-  // Check if already redeemed by a different device
-  if (
-    existingCode.redeemedByFingerprint &&
-    existingCode.redeemedByFingerprint !== fingerprint
-  ) {
-    return json(
-      {
-        error: "This code has already been redeemed on another device",
-      },
-      { status: 400 },
-    )
-  }
-
-  // Redeem code if not already redeemed
-  if (!existingCode.redeemedAt) {
-    await db
-      .update(redemptionCodes)
-      .set({
-        redeemedByFingerprint: fingerprint,
-        redeemedAt: new Date(),
-      })
-      .where(eq(redemptionCodes.id, existingCode.id))
-  }
-
-  // Get total balance for this device (sum of all active redeemed codes)
-  const allCodes = await db.query.redemptionCodes.findMany({
-    where: and(
-      eq(redemptionCodes.redeemedByFingerprint, fingerprint),
-      isNull(redemptionCodes.invalidatedAt),
-      eq(redemptionCodes.status, "active"),
-    ),
-  })
-
-  const totalBalance = allCodes.reduce((sum, c) => sum + c.remainingTokens, 0)
-
-  // Build codes breakdown (only include codes with remaining tokens)
-  const activeCodes = allCodes
-    .filter((c) => c.remainingTokens > 0)
-    .map((c) => ({ code: c.code, remainingTokens: c.remainingTokens }))
-
+  // Return code info - client will store locally and send with future requests
   return json({
     success: true,
     code: formattedCode,
     remainingTokens: existingCode.remainingTokens,
-    totalBalance,
-    activeCodes,
   })
 }
