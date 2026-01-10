@@ -27,8 +27,14 @@
   <!-- Canonical URL -->
   <link
     rel="canonical"
-    href={buildDomainUrl(`/coloring-pages/${data.urlSlug}`, "en")}
+    href={buildDomainUrl(`/${data.urlSlug}`, data.locale)}
   />
+
+  <!-- hreflang tags - override layout defaults with correct localized slugs -->
+  {#each Object.entries(data.alternateUrls) as [lang, url]}
+    <link rel="alternate" hreflang={lang} href={url} />
+  {/each}
+  <link rel="alternate" hreflang="x-default" href={data.alternateUrls.en} />
 
   <!-- JSON-LD Structured Data -->
   {@html `<script type="application/ld+json">${JSON.stringify({
@@ -36,7 +42,7 @@
     "@type": "CollectionPage",
     name: m.gallery_tag_title({ tag: data.displayName }),
     description: m.gallery_tag_description({ tag: data.displayName }),
-    url: buildDomainUrl(`/coloring-pages/${data.urlSlug}`, "en"),
+    url: buildDomainUrl(`/${data.urlSlug}`, data.locale),
     mainEntity: {
       "@type": "ImageGallery",
       name: m.gallery_recent_images({ tag: data.displayName }),

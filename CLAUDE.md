@@ -46,7 +46,8 @@ This is a coloring page generator web app using SvelteKit and Google's Gemini im
 - `src/lib/server/stripe.ts` - Stripe client and price configuration
 - `src/lib/stores/usage.svelte.ts` - Client-side usage state with cross-tab sync
 - `src/lib/stores/gallery.svelte.ts` - Client-side image gallery state (+ async public gallery save)
-- `src/lib/i18n/galleryRoutes.ts` - Locale-specific gallery URL prefixes
+- `src/lib/i18n/galleryRoutes.ts` - Gallery URL path helpers
+- `src/routes/[tag]/` - Public gallery tag pages (root-level, locale-aware)
 - `src/routes/api/` - API endpoints (generate, checkout, redeem, usage, webhooks, gallery/save)
 
 ### Components
@@ -137,21 +138,9 @@ The language switcher links directly to the other domain (not URL paths) to avoi
    fr: 'https://www.coloriages-enfants.fr'
    ```
 
-6. Add gallery route prefix in `src/lib/i18n/galleryRoutes.ts`:
+6. Run `pnpm translate-tags fr` to batch-translate existing tags to the new locale
 
-   ```typescript
-   // In GALLERY_PREFIXES
-   fr: 'coloriages',
-   ```
-
-7. Create gallery route folder: `src/routes/(gallery)/coloriages/[tag]/`
-   - Copy files from `src/routes/(gallery)/coloring-pages/[tag]/`
-   - Update the locale in `+page.server.ts` to `"fr"`
-   - Update canonical URL path in `+page.svelte`
-
-8. Run `pnpm translate-tags fr` to batch-translate existing tags to the new locale
-
-9. Point the new domain DNS to Vercel
+7. Point the new domain DNS to Vercel
 
 ### Using Messages in Components
 

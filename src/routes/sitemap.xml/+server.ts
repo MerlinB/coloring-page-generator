@@ -2,9 +2,7 @@ import type { RequestHandler } from "./$types"
 import {
   getLocaleFromHostname,
   getDomainForLocale,
-  type Locale,
 } from "$lib/i18n/domains"
-import { GALLERY_PREFIXES } from "$lib/i18n/galleryRoutes"
 import { getAllPublicTags } from "$lib/server/services/gallery"
 import { getLocalizedSlug } from "$lib/server/services/tagTranslation"
 
@@ -19,7 +17,6 @@ export const GET: RequestHandler = async ({ request }) => {
 
   const locale = getLocaleFromHostname(hostname)
   const domain = getDomainForLocale(locale)
-  const galleryPrefix = GALLERY_PREFIXES[locale]
 
   // Static pages
   const staticUrls = PAGES.map((path) => {
@@ -30,7 +27,7 @@ export const GET: RequestHandler = async ({ request }) => {
   </url>`
   })
 
-  // Dynamic gallery tag pages
+  // Dynamic gallery tag pages (now at root level)
   const publicTags = await getAllPublicTags()
   const tagUrls = await Promise.all(
     publicTags.map(async (canonicalTag) => {
@@ -38,7 +35,7 @@ export const GET: RequestHandler = async ({ request }) => {
       if (!localizedSlug) return null
 
       return `  <url>
-    <loc>${domain}/${galleryPrefix}/${localizedSlug}</loc>
+    <loc>${domain}/${localizedSlug}</loc>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>`
