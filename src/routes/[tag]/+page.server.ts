@@ -6,6 +6,7 @@ import {
   getLocalizedDisplayName,
   getLocalizedSlug,
 } from "$lib/server/services/tagTranslation"
+import { getPromptSuggestions } from "$lib/server/services/suggestions"
 import { getLocale } from "$lib/paraglide/runtime"
 import { type Locale, buildDomainUrl, LOCALE_DOMAIN_MAP } from "$lib/i18n/domains"
 
@@ -26,6 +27,9 @@ export const load: PageServerLoad = async ({ params }) => {
   // Get display name for the tag
   const displayName = await getLocalizedDisplayName(canonicalTag, locale)
 
+  // Get prompt suggestions for this tag/locale
+  const suggestions = await getPromptSuggestions(canonicalTag, locale)
+
   // Build alternate URLs for hreflang (each locale gets its own localized slug)
   const locales = Object.keys(LOCALE_DOMAIN_MAP) as Locale[]
   const alternateUrls: Record<Locale, string> = {} as Record<Locale, string>
@@ -41,5 +45,6 @@ export const load: PageServerLoad = async ({ params }) => {
     images,
     locale,
     alternateUrls,
+    suggestions,
   }
 }

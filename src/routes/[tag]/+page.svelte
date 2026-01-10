@@ -56,4 +56,5 @@
   displayName={data.displayName}
   images={data.images}
   locale={data.locale}
+  suggestions={data.suggestions}
 />

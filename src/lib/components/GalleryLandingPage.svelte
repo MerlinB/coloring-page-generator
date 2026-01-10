@@ -8,6 +8,7 @@
     displayName="Dinosaur"
     {images}
     locale="en"
+    suggestions={["Friendly dinosaur playing", "Baby dino hatching", "Dinosaur in jungle"]}
   />
 -->
 <script lang="ts">
@@ -23,19 +24,24 @@
     displayName: string
     images: PublicGalleryImage[]
     locale: Locale
+    suggestions?: string[]
   }
 
-  let { tag, displayName, images, locale }: Props = $props()
+  let { tag, displayName, images, locale, suggestions = [] }: Props = $props()
 
   // Lightbox state
   let lightboxImage: PublicGalleryImage | null = $state(null)
 
-  // Generate suggested prompts based on the tag
-  const suggestions = $derived([
-    m.gallery_suggestion_happy({ tag: displayName }),
-    m.gallery_suggestion_cute({ tag: displayName }),
-    m.gallery_suggestion_with_flowers({ tag: displayName }),
-  ])
+  // Use stored suggestions if available, otherwise fall back to templates
+  const displaySuggestions = $derived(
+    suggestions.length > 0
+      ? suggestions
+      : [
+          m.gallery_suggestion_happy({ tag: displayName }),
+          m.gallery_suggestion_cute({ tag: displayName }),
+          m.gallery_suggestion_with_flowers({ tag: displayName }),
+        ],
+  )
 </script>
 
 <main class="min-h-screen bg-background">
@@ -90,7 +96,7 @@
         {m.gallery_try_these()}
       </h2>
       <div class="flex flex-wrap gap-3">
-        {#each suggestions as suggestion}
+        {#each displaySuggestions as suggestion}
           <a
             href="/?prompt={encodeURIComponent(suggestion)}"
             class="inline-flex items-center gap-2 rounded-full bg-lavender-50 px-4 py-2 text-sm font-medium text-lavender-700 transition-colors hover:bg-lavender-100"

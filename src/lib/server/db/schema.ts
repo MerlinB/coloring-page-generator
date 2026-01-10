@@ -182,6 +182,7 @@ export const tagTranslations = pgTable(
     locale: text("locale").notNull(),
     localizedSlug: text("localized_slug").notNull(),
     displayName: text("display_name").notNull(),
+    promptSuggestions: text("prompt_suggestions").array().default([]),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

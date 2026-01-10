@@ -1,0 +1,1 @@
+ALTER TABLE "tag_translations" ADD COLUMN "prompt_suggestions" text[] DEFAULT '{}';

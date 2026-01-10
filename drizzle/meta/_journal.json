@@ -22,6 +22,13 @@
       "when": 1768035758151,
       "tag": "0002_boring_korvac",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1768054148414,
+      "tag": "0003_military_zombie",
+      "breakpoints": true
     }
   ]
 }
