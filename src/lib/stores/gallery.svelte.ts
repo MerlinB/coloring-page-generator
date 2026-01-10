@@ -77,6 +77,18 @@ function createGalleryStore() {
       )
 
       sync?.broadcast({ type: "IMAGE_ADDED", payload: image })
+
+      // Fire-and-forget: save to public gallery server-side
+      // This runs async and doesn't block the user experience
+      fetch("/api/gallery/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          imageData: image.imageData,
+          prompt: image.prompt,
+          format: image.format ?? "portrait",
+        }),
+      }).catch((e) => console.error("Failed to save to public gallery:", e))
     },
 
     setCurrentImage(image: GalleryImage) {

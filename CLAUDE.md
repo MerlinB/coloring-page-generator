@@ -5,16 +5,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```sh
-pnpm dev          # Start development server
-pnpm build        # Build for production
-pnpm preview      # Preview production build
-pnpm check        # Type-check with svelte-check
-pnpm check:watch  # Type-check in watch mode
-pnpm lint         # Run prettier and eslint checks
-pnpm format       # Format code with prettier
-pnpm db:generate  # Generate Drizzle migrations
-pnpm db:migrate   # Run Drizzle migrations
-pnpm db:studio    # Open Drizzle Studio
+pnpm dev            # Start development server
+pnpm build          # Build for production
+pnpm preview        # Preview production build
+pnpm check          # Type-check with svelte-check
+pnpm check:watch    # Type-check in watch mode
+pnpm lint           # Run prettier and eslint checks
+pnpm format         # Format code with prettier
+pnpm db:generate    # Generate Drizzle migrations
+pnpm db:migrate     # Run Drizzle migrations
+pnpm db:studio      # Open Drizzle Studio
+pnpm translate-tags # Batch translate gallery tags to a new locale
 ```
 
 ## Architecture
@@ -29,6 +30,8 @@ This is a coloring page generator web app using SvelteKit and Google's Gemini im
 4. Generated image (base64) returned to client, stored in gallery store
 5. Usage consumed after successful generation
 6. Gallery persisted to IndexedDB, synced across tabs via BroadcastChannel
+7. Client fires async request to `/api/gallery/save` (fire-and-forget)
+8. Server uploads image to Vercel Blob, extracts tags via Gemini, saves to public gallery DB
 
 ### Key Files
 
@@ -36,10 +39,15 @@ This is a coloring page generator web app using SvelteKit and Google's Gemini im
 - `src/lib/server/db/` - Drizzle schema and Neon connection
 - `src/lib/server/services/usage.ts` - Free tier and token balance logic
 - `src/lib/server/services/codes.ts` - Redemption code generation (COLOR-XXXX-XXXX)
+- `src/lib/server/services/gallery.ts` - Public gallery save and query
+- `src/lib/server/services/tagging.ts` - LLM-based tag extraction and content filtering
+- `src/lib/server/services/tagTranslation.ts` - Multi-language tag translation
+- `src/lib/server/services/blob.ts` - Vercel Blob storage wrapper
 - `src/lib/server/stripe.ts` - Stripe client and price configuration
 - `src/lib/stores/usage.svelte.ts` - Client-side usage state with cross-tab sync
-- `src/lib/stores/gallery.svelte.ts` - Client-side image gallery state
-- `src/routes/api/` - API endpoints (generate, checkout, redeem, usage, webhooks)
+- `src/lib/stores/gallery.svelte.ts` - Client-side image gallery state (+ async public gallery save)
+- `src/lib/i18n/galleryRoutes.ts` - Locale-specific gallery URL prefixes
+- `src/routes/api/` - API endpoints (generate, checkout, redeem, usage, webhooks, gallery/save)
 
 ### Components
 
@@ -53,6 +61,8 @@ All components use `@lucide/svelte` for icons.
 - `GalleryItem.svelte` - Individual gallery thumbnail with delete button
 - `Gallery.svelte` - Responsive grid of previously generated images
 - `LanguageSwitcher.svelte` - Language toggle linking to localized domains
+- `GalleryLandingPage.svelte` - SEO landing page for public gallery tags
+- `PublicGalleryItem.svelte` - Public gallery image card with "create similar" link
 
 ## Internationalization (i18n)
 
@@ -127,7 +137,21 @@ The language switcher links directly to the other domain (not URL paths) to avoi
    fr: 'https://www.coloriages-enfants.fr'
    ```
 
-6. Point the new domain to the same hosting
+6. Add gallery route prefix in `src/lib/i18n/galleryRoutes.ts`:
+
+   ```typescript
+   // In GALLERY_PREFIXES
+   fr: 'coloriages',
+   ```
+
+7. Create gallery route folder: `src/routes/(gallery)/coloriages/[tag]/`
+   - Copy files from `src/routes/(gallery)/coloring-pages/[tag]/`
+   - Update the locale in `+page.server.ts` to `"fr"`
+   - Update canonical URL path in `+page.svelte`
+
+8. Run `pnpm translate-tags fr` to batch-translate existing tags to the new locale
+
+9. Point the new domain DNS to Vercel
 
 ### Using Messages in Components
 
@@ -278,6 +302,7 @@ Required in `.env`:
 - `STRIPE_SECRET_KEY` - Stripe secret key
 - `STRIPE_WEBHOOK_SECRET` - Stripe webhook signing secret
 - `PUBLIC_STRIPE_PUBLISHABLE_KEY` - Stripe publishable key
+- `BLOB_READ_WRITE_TOKEN` - Vercel Blob storage token (for public gallery images)
 
 ## Google Cloud Quotas
 

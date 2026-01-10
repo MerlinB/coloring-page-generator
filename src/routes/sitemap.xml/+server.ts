@@ -1,10 +1,17 @@
 import type { RequestHandler } from "./$types"
-import { getLocaleFromHostname, getDomainForLocale } from "$lib/i18n/domains"
+import {
+  getLocaleFromHostname,
+  getDomainForLocale,
+  type Locale,
+} from "$lib/i18n/domains"
+import { GALLERY_PREFIXES } from "$lib/i18n/galleryRoutes"
+import { getAllPublicTags } from "$lib/server/services/gallery"
+import { getLocalizedSlug } from "$lib/server/services/tagTranslation"
 
 /** Public pages to include in the sitemap (excludes transactional and API routes) */
 const PAGES = ["/"]
 
-export const GET: RequestHandler = ({ request }) => {
+export const GET: RequestHandler = async ({ request }) => {
   const hostname =
     request.headers.get("x-forwarded-host") ??
     request.headers.get("host") ??
@@ -12,18 +19,37 @@ export const GET: RequestHandler = ({ request }) => {
 
   const locale = getLocaleFromHostname(hostname)
   const domain = getDomainForLocale(locale)
+  const galleryPrefix = GALLERY_PREFIXES[locale]
 
-  const urls = PAGES.map((path) => {
+  // Static pages
+  const staticUrls = PAGES.map((path) => {
     return `  <url>
     <loc>${domain}${path}</loc>
     <changefreq>weekly</changefreq>
     <priority>${path === "/" ? "1.0" : "0.8"}</priority>
   </url>`
-  }).join("\n")
+  })
+
+  // Dynamic gallery tag pages
+  const publicTags = await getAllPublicTags()
+  const tagUrls = await Promise.all(
+    publicTags.map(async (canonicalTag) => {
+      const localizedSlug = await getLocalizedSlug(canonicalTag, locale)
+      if (!localizedSlug) return null
+
+      return `  <url>
+    <loc>${domain}/${galleryPrefix}/${localizedSlug}</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>`
+    }),
+  )
+
+  const allUrls = [...staticUrls, ...tagUrls.filter(Boolean)].join("\n")
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls}
+${allUrls}
 </urlset>`
 
   return new Response(sitemap, {

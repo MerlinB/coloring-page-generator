@@ -1,0 +1,232 @@
+import { GoogleGenAI, Type } from "@google/genai"
+import { GEMINI_API_KEY } from "$env/static/private"
+import { db } from "$lib/server/db"
+import { tagTranslations } from "$lib/server/db/schema"
+import { eq, and } from "drizzle-orm"
+import type { Locale } from "$lib/i18n/domains"
+
+const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY })
+const MODEL = "gemini-2.5-flash"
+
+// All supported locales for tag translation
+const SUPPORTED_LOCALES: Locale[] = ["en", "de"]
+
+// Locale display names for LLM prompts
+const LOCALE_NAMES: Record<Locale, string> = {
+  en: "English",
+  de: "German",
+}
+
+/**
+ * Lookup the canonical English tag from a localized slug.
+ * Returns null if not found.
+ */
+export async function getCanonicalTag(
+  localizedSlug: string,
+  locale: Locale,
+): Promise<string | null> {
+  const result = await db.query.tagTranslations.findFirst({
+    where: and(
+      eq(tagTranslations.localizedSlug, localizedSlug.toLowerCase()),
+      eq(tagTranslations.locale, locale),
+    ),
+  })
+
+  return result?.tagSlug ?? null
+}
+
+/**
+ * Get the localized slug for a canonical tag.
+ * Returns null if not found.
+ */
+export async function getLocalizedSlug(
+  canonicalTag: string,
+  locale: Locale,
+): Promise<string | null> {
+  const result = await db.query.tagTranslations.findFirst({
+    where: and(
+      eq(tagTranslations.tagSlug, canonicalTag),
+      eq(tagTranslations.locale, locale),
+    ),
+  })
+
+  return result?.localizedSlug ?? null
+}
+
+/**
+ * Get the display name for a canonical tag in a specific locale.
+ * Returns the tag itself if not found.
+ */
+export async function getLocalizedDisplayName(
+  canonicalTag: string,
+  locale: Locale,
+): Promise<string> {
+  const result = await db.query.tagTranslations.findFirst({
+    where: and(
+      eq(tagTranslations.tagSlug, canonicalTag),
+      eq(tagTranslations.locale, locale),
+    ),
+  })
+
+  return result?.displayName ?? canonicalTag
+}
+
+interface TagTranslation {
+  locale: string
+  slug: string
+  displayName: string
+}
+
+/**
+ * Use LLM to translate a tag to all supported locales.
+ */
+async function translateTagWithLLM(
+  canonicalTag: string,
+): Promise<TagTranslation[]> {
+  const localeList = SUPPORTED_LOCALES.map(
+    (l) => `${l} (${LOCALE_NAMES[l]})`,
+  ).join(", ")
+
+  try {
+    const response = await ai.models.generateContent({
+      model: MODEL,
+      contents: `Translate this English tag for a coloring page gallery into other languages.
+
+Tag to translate: "${canonicalTag}"
+
+Languages needed: ${localeList}
+
+For each language, provide:
+- slug: URL-safe lowercase version (no spaces, use hyphens if needed)
+- displayName: Human-readable capitalized version
+
+The English version should keep the original tag as-is.`,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              locale: { type: Type.STRING, description: "Locale code (en, de)" },
+              slug: {
+                type: Type.STRING,
+                description: "URL-safe lowercase slug",
+              },
+              displayName: {
+                type: Type.STRING,
+                description: "Human-readable display name",
+              },
+            },
+            required: ["locale", "slug", "displayName"],
+          },
+        },
+      },
+    })
+
+    const text = response.text
+    if (!text) {
+      throw new Error("Empty response from translation")
+    }
+
+    return JSON.parse(text) as TagTranslation[]
+  } catch (error) {
+    console.error("Tag translation failed:", error)
+    // Fallback: use the canonical tag for all locales
+    return SUPPORTED_LOCALES.map((locale) => ({
+      locale,
+      slug: canonicalTag,
+      displayName: canonicalTag.charAt(0).toUpperCase() + canonicalTag.slice(1),
+    }))
+  }
+}
+
+/**
+ * Ensure translations exist for a tag in all supported locales.
+ * Creates missing translations using LLM.
+ */
+export async function ensureTagTranslations(
+  canonicalTag: string,
+): Promise<void> {
+  // Check which locales are missing
+  const existing = await db
+    .select({ locale: tagTranslations.locale })
+    .from(tagTranslations)
+    .where(eq(tagTranslations.tagSlug, canonicalTag))
+
+  const existingLocales = new Set(existing.map((e) => e.locale))
+  const missingLocales = SUPPORTED_LOCALES.filter(
+    (l) => !existingLocales.has(l),
+  )
+
+  if (missingLocales.length === 0) {
+    return // All translations exist
+  }
+
+  // Get translations for all locales (including existing, to ensure consistency)
+  const translations = await translateTagWithLLM(canonicalTag)
+
+  // Insert only missing translations
+  const toInsert = translations.filter((t) =>
+    missingLocales.includes(t.locale as Locale),
+  )
+
+  if (toInsert.length > 0) {
+    await db
+      .insert(tagTranslations)
+      .values(
+        toInsert.map((t) => ({
+          tagSlug: canonicalTag,
+          locale: t.locale,
+          localizedSlug: t.slug.toLowerCase(),
+          displayName: t.displayName,
+        })),
+      )
+      .onConflictDoNothing() // Handle race conditions
+  }
+}
+
+/**
+ * Translate a tag to a specific locale (for batch operations).
+ */
+export async function translateTagToLocale(
+  canonicalTag: string,
+  targetLocale: Locale,
+): Promise<{ slug: string; displayName: string }> {
+  // Check if translation already exists
+  const existing = await db.query.tagTranslations.findFirst({
+    where: and(
+      eq(tagTranslations.tagSlug, canonicalTag),
+      eq(tagTranslations.locale, targetLocale),
+    ),
+  })
+
+  if (existing) {
+    return { slug: existing.localizedSlug, displayName: existing.displayName }
+  }
+
+  // Get translation from LLM
+  const translations = await translateTagWithLLM(canonicalTag)
+  const translation = translations.find((t) => t.locale === targetLocale)
+
+  if (translation) {
+    // Store it
+    await db
+      .insert(tagTranslations)
+      .values({
+        tagSlug: canonicalTag,
+        locale: targetLocale,
+        localizedSlug: translation.slug.toLowerCase(),
+        displayName: translation.displayName,
+      })
+      .onConflictDoNothing()
+
+    return { slug: translation.slug, displayName: translation.displayName }
+  }
+
+  // Fallback
+  return {
+    slug: canonicalTag,
+    displayName: canonicalTag.charAt(0).toUpperCase() + canonicalTag.slice(1),
+  }
+}

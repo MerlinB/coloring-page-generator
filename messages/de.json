@@ -123,5 +123,14 @@
   "error_back_home": "Zurück zum Erstellen",
 
   "success_page_description": "Dein Kauf von Ausmalbildern ist abgeschlossen. Speichere deinen Einlösecode, um loszulegen.",
-  "cancelled_page_description": "Dein Kauf wurde abgebrochen. Komm jederzeit zurück, um mehr Ausmalbild-Guthaben zu erhalten."
+  "cancelled_page_description": "Dein Kauf wurde abgebrochen. Komm jederzeit zurück, um mehr Ausmalbild-Guthaben zu erhalten.",
+
+  "gallery_tag_title": "{tag} Ausmalbilder",
+  "gallery_tag_description": "Erstelle wunderschöne {tag} Ausmalbilder für Kinder mit unserem KI-Generator. Kostenlose druckbare Designs perfekt für Zuhause oder Schule.",
+  "gallery_cta_create": "Erstelle dein eigenes {tag}",
+  "gallery_recent_images": "Neueste {tag} Kreationen",
+  "gallery_try_these": "Probiere diese Ideen",
+  "gallery_cta_section_title": "Bereit zum Erstellen?",
+  "gallery_cta_section_desc": "Generiere einzigartige Ausmalbilder in Sekunden mit unserem KI-gestützten Tool. Perfekt für Kinder jeden Alters!",
+  "gallery_start_creating": "Jetzt loslegen"
 }

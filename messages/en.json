@@ -123,5 +123,14 @@
   "error_back_home": "Back to Creating",
 
   "success_page_description": "Your coloring page purchase is complete. Save your redemption code to start creating.",
-  "cancelled_page_description": "Your purchase was cancelled. Return anytime to get more coloring page credits."
+  "cancelled_page_description": "Your purchase was cancelled. Return anytime to get more coloring page credits.",
+
+  "gallery_tag_title": "{tag} Coloring Pages",
+  "gallery_tag_description": "Create beautiful {tag} coloring pages for kids with our AI generator. Free printable designs perfect for home or school.",
+  "gallery_cta_create": "Create Your Own {tag}",
+  "gallery_recent_images": "Recent {tag} Creations",
+  "gallery_try_these": "Try These Ideas",
+  "gallery_cta_section_title": "Ready to Create?",
+  "gallery_cta_section_desc": "Generate unique coloring pages in seconds with our AI-powered tool. Perfect for kids of all ages!",
+  "gallery_start_creating": "Start Creating"
 }

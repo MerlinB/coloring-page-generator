@@ -7,6 +7,7 @@ import {
   uuid,
   index,
   pgEnum,
+  unique,
 } from "drizzle-orm/pg-core"
 
 // Enums
@@ -121,6 +122,80 @@ export const generations = pgTable(
   ],
 )
 
+/**
+ * Gallery images table - stores publicly shared coloring pages.
+ * All successful generations are auto-shared unless flagged by content filter.
+ */
+export const galleryImages = pgTable(
+  "gallery_images",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    generationId: uuid("generation_id").references(() => generations.id),
+    blobUrl: text("blob_url").notNull(),
+    blobPathname: text("blob_pathname").notNull(),
+    prompt: text("prompt").notNull(),
+    isPublic: boolean("is_public").notNull().default(true),
+    flagReason: text("flag_reason"),
+    format: text("format").notNull().default("portrait"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("gallery_images_public_idx").on(table.isPublic),
+    index("gallery_images_created_at_idx").on(table.createdAt),
+  ],
+)
+
+/**
+ * Image tags table - stores extracted tags for gallery images.
+ * Many-to-many relationship with canonical English tags.
+ */
+export const imageTags = pgTable(
+  "image_tags",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    imageId: uuid("image_id")
+      .notNull()
+      .references(() => galleryImages.id, { onDelete: "cascade" }),
+    tagSlug: text("tag_slug").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("image_tags_image_idx").on(table.imageId),
+    index("image_tags_slug_idx").on(table.tagSlug),
+    unique("image_tags_image_tag_unique").on(table.imageId, table.tagSlug),
+  ],
+)
+
+/**
+ * Tag translations table - maps canonical English tags to localized slugs.
+ * Used for URL routing: /ausmalbilder/dinosaurier -> tag "dinosaur"
+ */
+export const tagTranslations = pgTable(
+  "tag_translations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tagSlug: text("tag_slug").notNull(),
+    locale: text("locale").notNull(),
+    localizedSlug: text("localized_slug").notNull(),
+    displayName: text("display_name").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("tag_translations_locale_slug_idx").on(
+      table.locale,
+      table.localizedSlug,
+    ),
+    index("tag_translations_tag_slug_idx").on(table.tagSlug),
+    unique("tag_translations_tag_locale_unique").on(table.tagSlug, table.locale),
+  ],
+)
+
 // Type exports for use in services
 export type Device = typeof devices.$inferSelect
 export type NewDevice = typeof devices.$inferInsert
@@ -130,3 +205,9 @@ export type Purchase = typeof purchases.$inferSelect
 export type NewPurchase = typeof purchases.$inferInsert
 export type Generation = typeof generations.$inferSelect
 export type NewGeneration = typeof generations.$inferInsert
+export type GalleryImage = typeof galleryImages.$inferSelect
+export type NewGalleryImage = typeof galleryImages.$inferInsert
+export type ImageTag = typeof imageTags.$inferSelect
+export type NewImageTag = typeof imageTags.$inferInsert
+export type TagTranslation = typeof tagTranslations.$inferSelect
+export type NewTagTranslation = typeof tagTranslations.$inferInsert
