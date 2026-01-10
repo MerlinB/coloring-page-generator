@@ -5,8 +5,8 @@
  * Example: pnpm generate-suggestions de     # German only
  *          pnpm generate-suggestions        # All locales
  *
- * Optimized batching: Makes ONE API call per locale with ALL tags needing suggestions.
- * This means 100 tags × 10 locales = 10 API calls (not 1,000).
+ * Optimized batching: Makes ONE API call per batch of tags (default 25 tags/batch).
+ * This means 100 tags × 10 locales = 40 API calls (not 1,000).
  *
  * Skips rows that already have suggestions populated.
  */
@@ -71,6 +71,19 @@ interface TagRow {
 interface TagInfo {
   tagSlug: string
   displayName: string
+}
+
+const BATCH_SIZE = 25
+
+/**
+ * Split an array into chunks of the specified size.
+ */
+function chunkArray<T>(array: T[], size: number): T[][] {
+  const chunks: T[][] = []
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size))
+  }
+  return chunks
 }
 
 /**
@@ -237,52 +250,62 @@ async function main() {
 
   let totalSuccess = 0
   let totalFail = 0
+  let totalApiCalls = 0
 
-  // Process each locale with ONE API call
+  // Process each locale in batches
   for (const [locale, rows] of byLocale) {
     const localeName = LOCALE_NAMES[locale] || locale
     console.log(`\n--- Processing ${locale} (${localeName}) - ${rows.length} tags ---\n`)
 
-    const tagInfos: TagInfo[] = rows.map((r) => ({
-      tagSlug: r.tagSlug,
-      displayName: r.displayName,
-    }))
+    // Chunk rows into batches
+    const batches = chunkArray(rows, BATCH_SIZE)
+    console.log(`  Processing ${batches.length} batch(es) of up to ${BATCH_SIZE} tags each\n`)
 
-    try {
-      console.log("Generating suggestions for all tags in one API call...")
-      const suggestions = await generateBatchSuggestions(tagInfos, locale)
+    let localeSuccess = 0
+    let localeFail = 0
 
-      // Update each row with its suggestions
-      let localeSuccess = 0
-      let localeFail = 0
+    for (let batchNum = 0; batchNum < batches.length; batchNum++) {
+      const batch = batches[batchNum]
+      console.log(`  Batch ${batchNum + 1}/${batches.length} (${batch.length} tags)...`)
 
-      for (const row of rows) {
-        const tagSuggestions = suggestions[row.tagSlug]
-        if (tagSuggestions && tagSuggestions.length > 0) {
-          await updateSuggestions(row.id, tagSuggestions)
-          console.log(`  [OK] ${row.tagSlug}:`)
-          tagSuggestions.forEach((s, i) => console.log(`       ${i + 1}. ${s}`))
-          localeSuccess++
-        } else {
-          console.log(`  [FAIL] ${row.tagSlug}: No suggestions generated`)
-          localeFail++
+      const tagInfos: TagInfo[] = batch.map((r) => ({
+        tagSlug: r.tagSlug,
+        displayName: r.displayName,
+      }))
+
+      try {
+        const suggestions = await generateBatchSuggestions(tagInfos, locale)
+        totalApiCalls++
+
+        for (const row of batch) {
+          const tagSuggestions = suggestions[row.tagSlug]
+          if (tagSuggestions && tagSuggestions.length > 0) {
+            await updateSuggestions(row.id, tagSuggestions)
+            console.log(`    [OK] ${row.tagSlug}:`)
+            tagSuggestions.forEach((s, i) => console.log(`         ${i + 1}. ${s}`))
+            localeSuccess++
+          } else {
+            console.log(`    [FAIL] ${row.tagSlug}: No suggestions generated`)
+            localeFail++
+          }
         }
+      } catch (error) {
+        console.error(`    [ERROR] Batch ${batchNum + 1} failed:`, error)
+        localeFail += batch.length
+        totalApiCalls++
       }
-
-      console.log(`\n  Locale ${locale}: ${localeSuccess} OK, ${localeFail} failed`)
-      totalSuccess += localeSuccess
-      totalFail += localeFail
-    } catch (error) {
-      console.error(`\n  [ERROR] Failed to generate suggestions for ${locale}:`, error)
-      totalFail += rows.length
     }
+
+    console.log(`\n  Locale ${locale}: ${localeSuccess} OK, ${localeFail} failed`)
+    totalSuccess += localeSuccess
+    totalFail += localeFail
   }
 
   console.log(`\n=== Summary ===`)
   console.log(`Successful: ${totalSuccess}`)
   console.log(`Failed: ${totalFail}`)
   console.log(`Total: ${translations.length}`)
-  console.log(`API calls made: ${byLocale.size}`)
+  console.log(`API calls made: ${totalApiCalls}`)
 }
 
 main().catch((error) => {

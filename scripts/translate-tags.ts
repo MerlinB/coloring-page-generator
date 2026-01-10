@@ -6,13 +6,16 @@
  *
  * This script is used when adding a new language to translate all existing
  * canonical English tags to the new locale.
+ *
+ * Optimized batching: Makes ONE API call per batch of tags (default 25 tags/batch).
+ * This means 100 tags = 4 API calls (not 100).
  */
 
 import { config } from "dotenv"
 import { drizzle } from "drizzle-orm/neon-http"
 import { neon } from "@neondatabase/serverless"
 import { GoogleGenAI, Type } from "@google/genai"
-import { eq, and } from "drizzle-orm"
+import { eq } from "drizzle-orm"
 import {
   imageTags,
   tagTranslations,
@@ -66,57 +69,94 @@ interface TagTranslation {
   displayName: string
 }
 
-async function translateTag(
-  canonicalTag: string,
+interface BatchTranslationResult {
+  [tagSlug: string]: TagTranslation
+}
+
+const BATCH_SIZE = 25
+
+/**
+ * Generate fallback translation when batch processing misses a tag.
+ */
+function fallbackTranslation(tag: string): TagTranslation {
+  return {
+    slug: tag,
+    displayName: tag.charAt(0).toUpperCase() + tag.slice(1),
+  }
+}
+
+/**
+ * Batch translate multiple tags in a single API call.
+ */
+async function translateBatch(
+  tags: string[],
   targetLocale: string,
-): Promise<TagTranslation> {
+): Promise<BatchTranslationResult> {
+  if (tags.length === 0) {
+    return {}
+  }
+
   const localeName = LOCALE_NAMES[targetLocale] || targetLocale
+  const tagList = tags.map((t) => `- ${t}`).join("\n")
 
-  try {
-    const response = await ai.models.generateContent({
-      model: MODEL,
-      contents: `Translate this English tag for a children's coloring page gallery into ${localeName}.
+  // Build dynamic schema with each tag as a property
+  const properties: Record<string, object> = {}
+  for (const tag of tags) {
+    properties[tag] = {
+      type: Type.OBJECT,
+      properties: {
+        slug: {
+          type: Type.STRING,
+          description: "URL-safe lowercase slug",
+        },
+        displayName: {
+          type: Type.STRING,
+          description: "Human-readable display name",
+        },
+      },
+      required: ["slug", "displayName"],
+    }
+  }
 
-Tag to translate: "${canonicalTag}"
+  const response = await ai.models.generateContent({
+    model: MODEL,
+    contents: `Translate these English tags for a children's coloring page gallery into ${localeName}.
 
-Provide:
+Tags to translate:
+${tagList}
+
+For each tag, provide:
 - slug: URL-safe lowercase version (no spaces, use hyphens if needed, use appropriate characters for the language)
 - displayName: Human-readable capitalized version in ${localeName}
 
 Be accurate and natural-sounding in ${localeName}.`,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            slug: {
-              type: Type.STRING,
-              description: "URL-safe lowercase slug",
-            },
-            displayName: {
-              type: Type.STRING,
-              description: "Human-readable display name",
-            },
-          },
-          required: ["slug", "displayName"],
-        },
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties,
+        required: tags,
       },
-    })
+    },
+  })
 
-    const text = response.text
-    if (!text) {
-      throw new Error("Empty response from translation")
-    }
-
-    return JSON.parse(text) as TagTranslation
-  } catch (error) {
-    console.error(`  Failed to translate "${canonicalTag}":`, error)
-    // Fallback: use the canonical tag
-    return {
-      slug: canonicalTag,
-      displayName: canonicalTag.charAt(0).toUpperCase() + canonicalTag.slice(1),
-    }
+  const text = response.text
+  if (!text) {
+    throw new Error("Empty response from batch translation")
   }
+
+  return JSON.parse(text) as BatchTranslationResult
+}
+
+/**
+ * Split an array into chunks of the specified size.
+ */
+function chunkArray<T>(array: T[], size: number): T[][] {
+  const chunks: T[][] = []
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size))
+  }
+  return chunks
 }
 
 async function getAllUniqueTags(): Promise<string[]> {
@@ -167,38 +207,63 @@ async function main() {
     process.exit(0)
   }
 
-  // Translate each tag
+  // Chunk tags into batches for efficient API usage
+  const batches = chunkArray(tagsToTranslate, BATCH_SIZE)
+  console.log(`Processing ${batches.length} batch(es) of up to ${BATCH_SIZE} tags each\n`)
+
   let successCount = 0
   let failCount = 0
+  let batchNum = 0
 
-  for (const tag of tagsToTranslate) {
-    process.stdout.write(`Translating "${tag}"... `)
+  for (const batch of batches) {
+    batchNum++
+    console.log(`\n--- Batch ${batchNum}/${batches.length} (${batch.length} tags) ---\n`)
 
     try {
-      const translation = await translateTag(tag, targetLocale)
+      const results = await translateBatch(batch, targetLocale)
 
-      await db.insert(tagTranslations).values({
-        tagSlug: tag,
-        locale: targetLocale,
-        localizedSlug: translation.slug.toLowerCase(),
-        displayName: translation.displayName,
-      }).onConflictDoNothing()
+      // Process each tag in the batch
+      for (const tag of batch) {
+        const translation = results[tag] ?? fallbackTranslation(tag)
+        const usedFallback = !results[tag]
 
-      console.log(`✓ ${translation.displayName} (${translation.slug})`)
-      successCount++
+        await db.insert(tagTranslations).values({
+          tagSlug: tag,
+          locale: targetLocale,
+          localizedSlug: translation.slug.toLowerCase(),
+          displayName: translation.displayName,
+        }).onConflictDoNothing()
+
+        if (usedFallback) {
+          console.log(`  [FALLBACK] ${tag} → ${translation.displayName}`)
+          failCount++
+        } else {
+          console.log(`  [OK] ${tag} → ${translation.displayName} (${translation.slug})`)
+          successCount++
+        }
+      }
     } catch (error) {
-      console.log(`✗ Failed`)
-      failCount++
+      console.error(`  [ERROR] Batch ${batchNum} failed:`, error)
+      // Apply fallback for entire batch
+      for (const tag of batch) {
+        const translation = fallbackTranslation(tag)
+        await db.insert(tagTranslations).values({
+          tagSlug: tag,
+          locale: targetLocale,
+          localizedSlug: translation.slug.toLowerCase(),
+          displayName: translation.displayName,
+        }).onConflictDoNothing()
+        console.log(`  [FALLBACK] ${tag} → ${translation.displayName}`)
+        failCount++
+      }
     }
-
-    // Small delay to avoid rate limiting
-    await new Promise((resolve) => setTimeout(resolve, 100))
   }
 
-  console.log(`\n--- Summary ---`)
+  console.log(`\n=== Summary ===`)
   console.log(`Successful: ${successCount}`)
-  console.log(`Failed: ${failCount}`)
+  console.log(`Fallbacks: ${failCount}`)
   console.log(`Total: ${tagsToTranslate.length}`)
+  console.log(`API calls: ${batches.length}`)
 }
 
 main().catch((error) => {
