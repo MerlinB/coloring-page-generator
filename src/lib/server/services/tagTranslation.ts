@@ -25,14 +25,39 @@ export async function getCanonicalTag(
   localizedSlug: string,
   locale: Locale,
 ): Promise<string | null> {
-  const result = await db.query.tagTranslations.findFirst({
-    where: and(
-      eq(tagTranslations.localizedSlug, localizedSlug.toLowerCase()),
-      eq(tagTranslations.locale, locale),
-    ),
-  })
+  const slug = localizedSlug.toLowerCase()
 
-  return result?.tagSlug ?? null
+  // First, try to find by localized slug
+  const result = await db
+    .select({ tagSlug: tagTranslations.tagSlug })
+    .from(tagTranslations)
+    .where(
+      and(
+        eq(tagTranslations.localizedSlug, slug),
+        eq(tagTranslations.locale, locale),
+      ),
+    )
+    .limit(1)
+
+  if (result.length > 0) {
+    return result[0].tagSlug
+  }
+
+  // For English, also check if the slug matches a canonical tagSlug directly
+  // (in case the translation record doesn't exist or has a different localizedSlug)
+  if (locale === "en") {
+    const directMatch = await db
+      .select({ tagSlug: tagTranslations.tagSlug })
+      .from(tagTranslations)
+      .where(eq(tagTranslations.tagSlug, slug))
+      .limit(1)
+
+    if (directMatch.length > 0) {
+      return directMatch[0].tagSlug
+    }
+  }
+
+  return null
 }
 
 /**
@@ -178,7 +203,8 @@ export async function ensureTagTranslations(
         toInsert.map((t) => ({
           tagSlug: canonicalTag,
           locale: t.locale,
-          localizedSlug: t.slug.toLowerCase(),
+          // For English, always use the canonical tag as the slug
+          localizedSlug: t.locale === "en" ? canonicalTag : t.slug.toLowerCase(),
           displayName: t.displayName,
         })),
       )

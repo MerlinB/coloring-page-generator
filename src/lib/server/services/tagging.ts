@@ -41,12 +41,17 @@ Tag guidelines:
 - Extract 1-5 tags, picking the most relevant
 - Focus on the main subject and theme
 
-Flag as inappropriate (isAppropriate: false) if the prompt contains:
-- Personal information (names of real people, addresses, phone numbers)
-- Violent or scary content not suitable for children
-- Sexual or inappropriate content
+Flag as inappropriate (isAppropriate: false) ONLY if the prompt contains:
+- Personal information (names of real people, addresses, phone numbers, emails)
+- Graphic violence or gore (blood, injury, death)
+- Sexual or adult content
 - Hate speech or discriminatory language
-- Anything else not suitable for a children's coloring page gallery
+
+Do NOT flag as inappropriate:
+- Normal emotions (crying, sad, angry, scared) - these are natural and fine
+- Adventure themes with weapons (knights with swords, pirates with cutlasses, archers)
+- Fantasy creatures or monsters (dragons, zombies, witches)
+- Any typical children's coloring book themes
 
 Prompt to analyze: `
 

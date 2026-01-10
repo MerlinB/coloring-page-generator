@@ -1,10 +1,7 @@
 <script lang="ts">
   import GalleryLandingPage from "$lib/components/GalleryLandingPage.svelte"
   import * as m from "$lib/paraglide/messages"
-  import { buildDomainUrl, type Locale } from "$lib/i18n/domains"
-  import { locales } from "$lib/paraglide/runtime"
-  import { getLocalizedSlug } from "$lib/server/services/tagTranslation"
-  import { GALLERY_PREFIXES } from "$lib/i18n/galleryRoutes"
+  import { buildDomainUrl } from "$lib/i18n/domains"
 
   let { data } = $props()
 </script>

@@ -36,6 +36,7 @@ overwriteGetLocale(() => {
  */
 const BODY_SIZE_LIMITS: Record<string, number> = {
   "/api/generate": 6 * 1024 * 1024, // 6MB for image editing
+  "/api/gallery/save": 6 * 1024 * 1024, // 6MB for gallery image uploads
   "/api/webhooks/stripe": 1 * 1024 * 1024, // 1MB for Stripe webhooks
   default: 512 * 1024, // 512KB for other endpoints
 }
