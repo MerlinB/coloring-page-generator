@@ -126,12 +126,15 @@
   "cancelled_page_description": "Dein Kauf wurde abgebrochen. Komm jederzeit zurück, um mehr Ausmalbild-Guthaben zu erhalten.",
 
   "gallery_tag_title": "{tag} Ausmalbilder",
-  "gallery_tag_description": "Erstelle wunderschöne {tag} Ausmalbilder für Kinder mit unserem KI-Generator. Kostenlose druckbare Designs perfekt für Zuhause oder Schule.",
-  "gallery_cta_create": "Erstelle dein eigenes {tag}",
-  "gallery_cta_create_similar": "Ähnliches erstellen",
+  "gallery_tag_description": "Generiere wunderschöne {tag} Ausmalbilder für Kinder mit unserem KI-Generator. Kostenlose druckbare Designs perfekt für Zuhause oder Schule.",
+  "gallery_cta_create": "{tag} Ausmalbild generieren",
+  "gallery_cta_create_similar": "Ähnliches generieren",
   "gallery_recent_images": "Neueste {tag} Kreationen",
   "gallery_try_these": "Probiere diese Ideen",
-  "gallery_cta_section_title": "Bereit zum Erstellen?",
+  "gallery_suggestion_happy": "Fröhliches {tag}",
+  "gallery_suggestion_cute": "Süßes {tag}",
+  "gallery_suggestion_with_flowers": "{tag} mit Blumen",
+  "gallery_cta_section_title": "Bereit zum Generieren?",
   "gallery_cta_section_desc": "Generiere einzigartige Ausmalbilder in Sekunden mit unserem KI-gestützten Tool. Perfekt für Kinder jeden Alters!",
   "gallery_start_creating": "Jetzt loslegen"
 }

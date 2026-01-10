@@ -127,10 +127,13 @@
 
   "gallery_tag_title": "{tag} Coloring Pages",
   "gallery_tag_description": "Create beautiful {tag} coloring pages for kids with our AI generator. Free printable designs perfect for home or school.",
-  "gallery_cta_create": "Create Your Own {tag}",
+  "gallery_cta_create": "Create {tag} Coloring Page",
   "gallery_cta_create_similar": "Create Similar",
   "gallery_recent_images": "Recent {tag} Creations",
   "gallery_try_these": "Try These Ideas",
+  "gallery_suggestion_happy": "Happy {tag}",
+  "gallery_suggestion_cute": "Cute {tag}",
+  "gallery_suggestion_with_flowers": "{tag} with flowers",
   "gallery_cta_section_title": "Ready to Create?",
   "gallery_cta_section_desc": "Generate unique coloring pages in seconds with our AI-powered tool. Perfect for kids of all ages!",
   "gallery_start_creating": "Start Creating"

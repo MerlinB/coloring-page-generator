@@ -32,9 +32,9 @@
 
   // Generate suggested prompts based on the tag
   const suggestions = $derived([
-    `${displayName} in a forest`,
-    `Cute ${displayName.toLowerCase()}`,
-    `${displayName} with flowers`,
+    m.gallery_suggestion_happy({ tag: displayName }),
+    m.gallery_suggestion_cute({ tag: displayName }),
+    m.gallery_suggestion_with_flowers({ tag: displayName }),
   ])
 </script>
 
