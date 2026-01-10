@@ -1,14 +1,19 @@
 /**
  * Batch generate prompt suggestions for tag translations.
  *
- * Usage: pnpm generate-suggestions [locale]
+ * Usage: pnpm generate-suggestions [locale] [--limit N]
  * Example: pnpm generate-suggestions de     # German only
  *          pnpm generate-suggestions        # All locales
+ *          pnpm generate-suggestions --limit 50
  *
  * Optimized batching: Makes ONE API call per batch of tags (default 25 tags/batch).
  * This means 100 tags × 10 locales = 40 API calls (not 1,000).
  *
  * Skips rows that already have suggestions populated.
+ *
+ * Safety features for cron usage:
+ * - MAX_ITEMS_PER_RUN: Limits items processed per run (default 100, override with --limit)
+ * - Exits immediately on database errors to avoid burning API credits
  */
 
 import { config } from "dotenv"
@@ -74,6 +79,21 @@ interface TagInfo {
 }
 
 const BATCH_SIZE = 25
+const DEFAULT_MAX_ITEMS = 100
+
+/**
+ * Parse --limit argument from command line.
+ */
+function parseMaxItems(): number {
+  const limitIndex = process.argv.indexOf("--limit")
+  if (limitIndex !== -1 && process.argv[limitIndex + 1]) {
+    const limit = parseInt(process.argv[limitIndex + 1], 10)
+    if (!isNaN(limit) && limit > 0) {
+      return limit
+    }
+  }
+  return DEFAULT_MAX_ITEMS
+}
 
 /**
  * Split an array into chunks of the specified size.
@@ -215,7 +235,9 @@ async function updateSuggestions(id: string, suggestions: string[]): Promise<voi
 }
 
 async function main() {
-  const targetLocale = process.argv[2]
+  // Parse locale (skip if it's a flag)
+  const targetLocale = process.argv[2]?.startsWith("--") ? undefined : process.argv[2]
+  const maxItems = parseMaxItems()
 
   console.log("\n=== Generate Prompt Suggestions ===\n")
   if (targetLocale) {
@@ -223,11 +245,18 @@ async function main() {
   } else {
     console.log("Target locale: all locales")
   }
+  console.log(`Max items per run: ${maxItems}`)
   console.log()
 
   // Get translations that need suggestions
-  const translations = await getTranslationsNeedingSuggestions(targetLocale)
-  console.log(`Found ${translations.length} translations needing suggestions\n`)
+  const allTranslations = await getTranslationsNeedingSuggestions(targetLocale)
+  const translations = allTranslations.slice(0, maxItems)
+
+  if (allTranslations.length > maxItems) {
+    console.log(`Found ${allTranslations.length} translations needing suggestions (limited to ${maxItems})\n`)
+  } else {
+    console.log(`Found ${translations.length} translations needing suggestions\n`)
+  }
 
   if (translations.length === 0) {
     console.log("All translations already have suggestions!")
@@ -280,7 +309,18 @@ async function main() {
         for (const row of batch) {
           const tagSuggestions = suggestions[row.tagSlug]
           if (tagSuggestions && tagSuggestions.length > 0) {
-            await updateSuggestions(row.id, tagSuggestions)
+            try {
+              await updateSuggestions(row.id, tagSuggestions)
+            } catch (dbError) {
+              console.error(`\n[FATAL] Database error after successful API call - exiting to prevent credit waste`)
+              console.error(`  Tag: ${row.tagSlug}`)
+              console.error(`  Error:`, dbError)
+              console.log(`\n=== Partial Summary (interrupted) ===`)
+              console.log(`Successful: ${totalSuccess + localeSuccess}`)
+              console.log(`Failed: ${totalFail + localeFail}`)
+              console.log(`API calls made: ${totalApiCalls}`)
+              process.exit(1)
+            }
             console.log(`    [OK] ${row.tagSlug}:`)
             tagSuggestions.forEach((s, i) => console.log(`         ${i + 1}. ${s}`))
             localeSuccess++
@@ -290,7 +330,7 @@ async function main() {
           }
         }
       } catch (error) {
-        console.error(`    [ERROR] Batch ${batchNum + 1} failed:`, error)
+        console.error(`    [ERROR] Batch ${batchNum + 1} API call failed:`, error)
         localeFail += batch.length
         totalApiCalls++
       }

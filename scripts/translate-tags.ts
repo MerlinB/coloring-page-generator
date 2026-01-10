@@ -1,14 +1,19 @@
 /**
  * Batch translate tags to a new locale.
  *
- * Usage: pnpm translate-tags <locale>
+ * Usage: pnpm translate-tags <locale> [--limit N]
  * Example: pnpm translate-tags fr
+ *          pnpm translate-tags fr --limit 50
  *
  * This script is used when adding a new language to translate all existing
  * canonical English tags to the new locale.
  *
  * Optimized batching: Makes ONE API call per batch of tags (default 25 tags/batch).
  * This means 100 tags = 4 API calls (not 100).
+ *
+ * Safety features for cron usage:
+ * - MAX_ITEMS_PER_RUN: Limits items processed per run (default 100, override with --limit)
+ * - Exits immediately on database errors to avoid burning API credits
  */
 
 import { config } from "dotenv"
@@ -74,6 +79,21 @@ interface BatchTranslationResult {
 }
 
 const BATCH_SIZE = 25
+const DEFAULT_MAX_ITEMS = 100
+
+/**
+ * Parse --limit argument from command line.
+ */
+function parseMaxItems(): number {
+  const limitIndex = process.argv.indexOf("--limit")
+  if (limitIndex !== -1 && process.argv[limitIndex + 1]) {
+    const limit = parseInt(process.argv[limitIndex + 1], 10)
+    if (!isNaN(limit) && limit > 0) {
+      return limit
+    }
+  }
+  return DEFAULT_MAX_ITEMS
+}
 
 /**
  * Generate fallback translation when batch processing misses a tag.
@@ -179,14 +199,18 @@ async function getExistingTranslations(locale: string): Promise<Set<string>> {
 async function main() {
   const targetLocale = process.argv[2]
 
-  if (!targetLocale) {
-    console.error("Usage: pnpm translate-tags <locale>")
+  if (!targetLocale || targetLocale.startsWith("--")) {
+    console.error("Usage: pnpm translate-tags <locale> [--limit N]")
     console.error("Example: pnpm translate-tags fr")
+    console.error("         pnpm translate-tags fr --limit 50")
     process.exit(1)
   }
 
+  const maxItems = parseMaxItems()
+
   console.log(`\nTranslating tags to locale: ${targetLocale}`)
-  console.log(`Language: ${LOCALE_NAMES[targetLocale] || "Unknown"}\n`)
+  console.log(`Language: ${LOCALE_NAMES[targetLocale] || "Unknown"}`)
+  console.log(`Max items per run: ${maxItems}\n`)
 
   // Get all unique tags
   const allTags = await getAllUniqueTags()
@@ -198,9 +222,15 @@ async function main() {
     `Already translated: ${existingTranslations.size} tags\n`,
   )
 
-  // Filter to only tags that need translation
-  const tagsToTranslate = allTags.filter((tag) => !existingTranslations.has(tag))
-  console.log(`Tags to translate: ${tagsToTranslate.length}\n`)
+  // Filter to only tags that need translation, apply limit
+  const allTagsToTranslate = allTags.filter((tag) => !existingTranslations.has(tag))
+  const tagsToTranslate = allTagsToTranslate.slice(0, maxItems)
+
+  if (allTagsToTranslate.length > maxItems) {
+    console.log(`Tags needing translation: ${allTagsToTranslate.length} (limited to ${maxItems})\n`)
+  } else {
+    console.log(`Tags to translate: ${tagsToTranslate.length}\n`)
+  }
 
   if (tagsToTranslate.length === 0) {
     console.log("All tags are already translated!")
@@ -227,12 +257,22 @@ async function main() {
         const translation = results[tag] ?? fallbackTranslation(tag)
         const usedFallback = !results[tag]
 
-        await db.insert(tagTranslations).values({
-          tagSlug: tag,
-          locale: targetLocale,
-          localizedSlug: translation.slug.toLowerCase(),
-          displayName: translation.displayName,
-        }).onConflictDoNothing()
+        try {
+          await db.insert(tagTranslations).values({
+            tagSlug: tag,
+            locale: targetLocale,
+            localizedSlug: translation.slug.toLowerCase(),
+            displayName: translation.displayName,
+          }).onConflictDoNothing()
+        } catch (dbError) {
+          console.error(`\n[FATAL] Database error after successful API call - exiting to prevent credit waste`)
+          console.error(`  Tag: ${tag}`)
+          console.error(`  Error:`, dbError)
+          console.log(`\n=== Partial Summary (interrupted) ===`)
+          console.log(`Successful: ${successCount}`)
+          console.log(`Fallbacks: ${failCount}`)
+          process.exit(1)
+        }
 
         if (usedFallback) {
           console.log(`  [FALLBACK] ${tag} → ${translation.displayName}`)
@@ -243,16 +283,22 @@ async function main() {
         }
       }
     } catch (error) {
-      console.error(`  [ERROR] Batch ${batchNum} failed:`, error)
-      // Apply fallback for entire batch
+      console.error(`  [ERROR] Batch ${batchNum} API call failed:`, error)
+      // Apply fallback for entire batch - but exit on DB error
       for (const tag of batch) {
         const translation = fallbackTranslation(tag)
-        await db.insert(tagTranslations).values({
-          tagSlug: tag,
-          locale: targetLocale,
-          localizedSlug: translation.slug.toLowerCase(),
-          displayName: translation.displayName,
-        }).onConflictDoNothing()
+        try {
+          await db.insert(tagTranslations).values({
+            tagSlug: tag,
+            locale: targetLocale,
+            localizedSlug: translation.slug.toLowerCase(),
+            displayName: translation.displayName,
+          }).onConflictDoNothing()
+        } catch (dbError) {
+          console.error(`\n[FATAL] Database error - exiting to prevent further issues`)
+          console.error(`  Error:`, dbError)
+          process.exit(1)
+        }
         console.log(`  [FALLBACK] ${tag} → ${translation.displayName}`)
         failCount++
       }
