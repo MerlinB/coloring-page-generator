@@ -1,25 +1,27 @@
 <!--
   @component Individual public gallery image card for landing pages.
-  Shows a thumbnail with the prompt and links to create similar.
+  Shows a thumbnail with the prompt. Clicking opens the lightbox.
 
   @example
-  <PublicGalleryItem {image} />
+  <PublicGalleryItem {image} onselect={(img) => openLightbox(img)} />
 -->
 <script lang="ts">
   import type { PublicGalleryImage } from "$lib/server/services/gallery"
 
   interface Props {
     image: PublicGalleryImage
+    onselect: (image: PublicGalleryImage) => void
   }
 
-  let { image }: Props = $props()
+  let { image, onselect }: Props = $props()
 </script>
 
 <div class="group relative">
-  <a
-    href="/?prompt={encodeURIComponent(image.prompt)}"
-    class="block w-full overflow-hidden rounded-xl border-2 border-coral-100 bg-white shadow-sm transition-all hover:border-coral-300 hover:shadow-md"
-    title="Create similar: {image.prompt}"
+  <button
+    type="button"
+    onclick={() => onselect(image)}
+    class="block w-full cursor-zoom-in overflow-hidden rounded-xl border-2 border-coral-100 bg-white shadow-sm transition-all hover:border-coral-300 hover:shadow-md"
+    title={image.prompt}
   >
     <img
       src={image.blobUrl}
@@ -27,7 +29,7 @@
       class="aspect-[3/4] w-full object-cover"
       loading="lazy"
     />
-  </a>
+  </button>
 
   <p
     class="mt-2 line-clamp-2 text-center text-xs text-muted-foreground"

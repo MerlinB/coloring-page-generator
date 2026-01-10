@@ -13,6 +13,7 @@
 <script lang="ts">
   import { Sparkles, Palette, ArrowRight } from "@lucide/svelte"
   import PublicGalleryItem from "./PublicGalleryItem.svelte"
+  import PublicLightbox from "./PublicLightbox.svelte"
   import * as m from "$lib/paraglide/messages"
   import type { PublicGalleryImage } from "$lib/server/services/gallery"
   import type { Locale } from "$lib/i18n/domains"
@@ -25,6 +26,9 @@
   }
 
   let { tag, displayName, images, locale }: Props = $props()
+
+  // Lightbox state
+  let lightboxImage: PublicGalleryImage | null = $state(null)
 
   // Generate suggested prompts based on the tag
   const suggestions = $derived([
@@ -74,7 +78,7 @@
           class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
         >
           {#each images as image (image.id)}
-            <PublicGalleryItem {image} />
+            <PublicGalleryItem {image} onselect={(img) => (lightboxImage = img)} />
           {/each}
         </div>
       </section>
@@ -119,3 +123,7 @@
     </section>
   </div>
 </main>
+
+{#if lightboxImage}
+  <PublicLightbox image={lightboxImage} onclose={() => (lightboxImage = null)} />
+{/if}
