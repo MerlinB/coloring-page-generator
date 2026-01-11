@@ -12,13 +12,13 @@
   import { page } from "$app/state"
   import { locales, getLocale } from "$lib/paraglide/runtime"
   import { buildDomainUrl, type Locale } from "$lib/i18n/domains"
-  import * as m from "$lib/paraglide/messages"
 
-  const languageNames: Record<string, () => string> = {
-    en: () => m.language_en(),
-    de: () => m.language_de(),
-    fr: () => m.language_fr(),
-    es: () => m.language_es(),
+  // Language names in their native form (not translated)
+  const languageNames: Record<string, string> = {
+    en: "English",
+    de: "Deutsch",
+    fr: "Français",
+    es: "Español",
   }
 
   const currentLocale = $derived(getLocale())
@@ -43,7 +43,7 @@
             : 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
           aria-current={isActive ? "page" : undefined}
         >
-          {languageNames[loc]?.() ?? loc.toUpperCase()}
+          {languageNames[loc] ?? loc.toUpperCase()}
         </a>
       {/each}
     </div>
