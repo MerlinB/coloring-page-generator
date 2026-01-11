@@ -13,6 +13,7 @@ const LOCALE_NAMES: Record<Locale, string> = {
   en: "English",
   de: "German",
   fr: "French",
+  es: "Spanish",
 }
 
 /**

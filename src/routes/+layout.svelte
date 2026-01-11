@@ -19,7 +19,13 @@
     buildDomainUrl(page.url.pathname, currentLocale),
   )
   const ogLocale = $derived(
-    currentLocale === "de" ? "de_DE" : currentLocale === "fr" ? "fr_FR" : "en_US",
+    currentLocale === "de"
+      ? "de_DE"
+      : currentLocale === "fr"
+        ? "fr_FR"
+        : currentLocale === "es"
+          ? "es_ES"
+          : "en_US",
   )
 
   let { children, data } = $props()

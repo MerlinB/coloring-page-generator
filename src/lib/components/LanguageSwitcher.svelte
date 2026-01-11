@@ -18,6 +18,7 @@
     en: () => m.language_en(),
     de: () => m.language_de(),
     fr: () => m.language_fr(),
+    es: () => m.language_es(),
   }
 
   const currentLocale = $derived(getLocale())

@@ -10,7 +10,7 @@
  */
 
 /** All supported locales. This is the canonical source - other files import from here. */
-export const SUPPORTED_LOCALES = ["en", "de", "fr"] as const
+export const SUPPORTED_LOCALES = ["en", "de", "fr", "es"] as const
 
 /** Locale type derived from SUPPORTED_LOCALES */
 export type Locale = (typeof SUPPORTED_LOCALES)[number]
@@ -28,6 +28,9 @@ export const DOMAIN_LOCALE_MAP: Record<string, Locale> = {
   // French domains
   "generateurcoloriages.com": "fr",
   "www.generateurcoloriages.com": "fr",
+  // Spanish domains
+  "generadordibujoscolorear.com": "es",
+  "www.generadordibujoscolorear.com": "es",
   // Development
   localhost: "en",
 }
@@ -36,6 +39,7 @@ export const LOCALE_DOMAIN_MAP: Record<Locale, string> = {
   en: "https://www.makecoloringpages.com",
   de: "https://www.ausmalbilder-generator.de",
   fr: "https://www.generateurcoloriages.com",
+  es: "https://www.generadordibujoscolorear.com",
 }
 
 /**
