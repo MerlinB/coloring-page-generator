@@ -124,7 +124,10 @@ async function generateBatchSuggestions(
     .join("\n")
 
   // Build the response schema with each tag as a property
-  const properties: Record<string, { type: typeof Type.ARRAY; items: { type: typeof Type.STRING } }> = {}
+  const properties: Record<
+    string,
+    { type: typeof Type.ARRAY; items: { type: typeof Type.STRING } }
+  > = {}
   for (const tag of tags) {
     properties[tag.tagSlug] = {
       type: Type.ARRAY,
@@ -208,7 +211,9 @@ async function getTranslationsNeedingSuggestions(
         locale: tagTranslations.locale,
       })
       .from(tagTranslations)
-      .where(sql`${needsSuggestions} AND ${tagTranslations.locale} = ${targetLocale}`)
+      .where(
+        sql`${needsSuggestions} AND ${tagTranslations.locale} = ${targetLocale}`,
+      )
       .orderBy(tagTranslations.tagSlug)
   }
 
@@ -227,7 +232,10 @@ async function getTranslationsNeedingSuggestions(
 /**
  * Update suggestions for a single tag translation row.
  */
-async function updateSuggestions(id: string, suggestions: string[]): Promise<void> {
+async function updateSuggestions(
+  id: string,
+  suggestions: string[],
+): Promise<void> {
   await db
     .update(tagTranslations)
     .set({ promptSuggestions: suggestions })
@@ -236,12 +244,16 @@ async function updateSuggestions(id: string, suggestions: string[]): Promise<voi
 
 async function main() {
   // Parse locale (skip if it's a flag)
-  const targetLocale = process.argv[2]?.startsWith("--") ? undefined : process.argv[2]
+  const targetLocale = process.argv[2]?.startsWith("--")
+    ? undefined
+    : process.argv[2]
   const maxItems = parseMaxItems()
 
   console.log("\n=== Generate Prompt Suggestions ===\n")
   if (targetLocale) {
-    console.log(`Target locale: ${targetLocale} (${LOCALE_NAMES[targetLocale] || "Unknown"})`)
+    console.log(
+      `Target locale: ${targetLocale} (${LOCALE_NAMES[targetLocale] || "Unknown"})`,
+    )
   } else {
     console.log("Target locale: all locales")
   }
@@ -253,9 +265,13 @@ async function main() {
   const translations = allTranslations.slice(0, maxItems)
 
   if (allTranslations.length > maxItems) {
-    console.log(`Found ${allTranslations.length} translations needing suggestions (limited to ${maxItems})\n`)
+    console.log(
+      `Found ${allTranslations.length} translations needing suggestions (limited to ${maxItems})\n`,
+    )
   } else {
-    console.log(`Found ${translations.length} translations needing suggestions\n`)
+    console.log(
+      `Found ${translations.length} translations needing suggestions\n`,
+    )
   }
 
   if (translations.length === 0) {
@@ -284,18 +300,24 @@ async function main() {
   // Process each locale in batches
   for (const [locale, rows] of byLocale) {
     const localeName = LOCALE_NAMES[locale] || locale
-    console.log(`\n--- Processing ${locale} (${localeName}) - ${rows.length} tags ---\n`)
+    console.log(
+      `\n--- Processing ${locale} (${localeName}) - ${rows.length} tags ---\n`,
+    )
 
     // Chunk rows into batches
     const batches = chunkArray(rows, BATCH_SIZE)
-    console.log(`  Processing ${batches.length} batch(es) of up to ${BATCH_SIZE} tags each\n`)
+    console.log(
+      `  Processing ${batches.length} batch(es) of up to ${BATCH_SIZE} tags each\n`,
+    )
 
     let localeSuccess = 0
     let localeFail = 0
 
     for (let batchNum = 0; batchNum < batches.length; batchNum++) {
       const batch = batches[batchNum]
-      console.log(`  Batch ${batchNum + 1}/${batches.length} (${batch.length} tags)...`)
+      console.log(
+        `  Batch ${batchNum + 1}/${batches.length} (${batch.length} tags)...`,
+      )
 
       const tagInfos: TagInfo[] = batch.map((r) => ({
         tagSlug: r.tagSlug,
@@ -312,7 +334,9 @@ async function main() {
             try {
               await updateSuggestions(row.id, tagSuggestions)
             } catch (dbError) {
-              console.error(`\n[FATAL] Database error after successful API call - exiting to prevent credit waste`)
+              console.error(
+                `\n[FATAL] Database error after successful API call - exiting to prevent credit waste`,
+              )
               console.error(`  Tag: ${row.tagSlug}`)
               console.error(`  Error:`, dbError)
               console.log(`\n=== Partial Summary (interrupted) ===`)
@@ -322,7 +346,9 @@ async function main() {
               process.exit(1)
             }
             console.log(`    [OK] ${row.tagSlug}:`)
-            tagSuggestions.forEach((s, i) => console.log(`         ${i + 1}. ${s}`))
+            tagSuggestions.forEach((s, i) =>
+              console.log(`         ${i + 1}. ${s}`),
+            )
             localeSuccess++
           } else {
             console.log(`    [FAIL] ${row.tagSlug}: No suggestions generated`)
@@ -330,13 +356,18 @@ async function main() {
           }
         }
       } catch (error) {
-        console.error(`    [ERROR] Batch ${batchNum + 1} API call failed:`, error)
+        console.error(
+          `    [ERROR] Batch ${batchNum + 1} API call failed:`,
+          error,
+        )
         localeFail += batch.length
         totalApiCalls++
       }
     }
 
-    console.log(`\n  Locale ${locale}: ${localeSuccess} OK, ${localeFail} failed`)
+    console.log(
+      `\n  Locale ${locale}: ${localeSuccess} OK, ${localeFail} failed`,
+    )
     totalSuccess += localeSuccess
     totalFail += localeFail
   }

@@ -7,7 +7,9 @@
 </script>
 
 <svelte:head>
-  <title>{m.gallery_tag_title({ tag: data.displayName })} | {m.site_title()}</title>
+  <title
+    >{m.gallery_tag_title({ tag: data.displayName })} | {m.site_title()}</title
+  >
   <meta
     name="description"
     content={m.gallery_tag_description({ tag: data.displayName })}
@@ -16,7 +18,9 @@
   <!-- Open Graph -->
   <meta
     property="og:title"
-    content="{m.gallery_tag_title({ tag: data.displayName })} | {m.site_title()}"
+    content="{m.gallery_tag_title({
+      tag: data.displayName,
+    })} | {m.site_title()}"
   />
   <meta
     property="og:description"

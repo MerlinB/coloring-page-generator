@@ -195,7 +195,10 @@ export const tagTranslations = pgTable(
     ),
     // For batch lookup: WHERE locale = ? AND tag_slug IN (...)
     index("tag_translations_locale_tag_idx").on(table.locale, table.tagSlug),
-    unique("tag_translations_tag_locale_unique").on(table.tagSlug, table.locale),
+    unique("tag_translations_tag_locale_unique").on(
+      table.tagSlug,
+      table.locale,
+    ),
   ],
 )
 

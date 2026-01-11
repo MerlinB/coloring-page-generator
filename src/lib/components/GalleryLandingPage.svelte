@@ -77,14 +77,19 @@
     <!-- Recent Images Section -->
     {#if images.length > 0}
       <section class="mb-12">
-        <h2 class="mb-6 font-display text-xl font-bold text-coral-700 sm:text-2xl">
+        <h2
+          class="mb-6 font-display text-xl font-bold text-coral-700 sm:text-2xl"
+        >
           {m.gallery_recent_images({ tag: displayName })}
         </h2>
         <div
           class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
         >
           {#each images as image (image.id)}
-            <PublicGalleryItem {image} onselect={(img) => (lightboxImage = img)} />
+            <PublicGalleryItem
+              {image}
+              onselect={(img) => (lightboxImage = img)}
+            />
           {/each}
         </div>
       </section>
@@ -113,7 +118,9 @@
       class="rounded-3xl bg-gradient-to-br from-card to-coral-50 p-8 text-center shadow-lg sm:p-12"
     >
       <Palette class="mx-auto h-12 w-12 text-coral-500" />
-      <h2 class="mt-4 font-display text-2xl font-bold text-foreground sm:text-3xl">
+      <h2
+        class="mt-4 font-display text-2xl font-bold text-foreground sm:text-3xl"
+      >
         {m.gallery_cta_section_title()}
       </h2>
       <p class="mx-auto mt-2 max-w-md text-muted-foreground">
@@ -131,5 +138,8 @@
 </main>
 
 {#if lightboxImage}
-  <PublicLightbox image={lightboxImage} onclose={() => (lightboxImage = null)} />
+  <PublicLightbox
+    image={lightboxImage}
+    onclose={() => (lightboxImage = null)}
+  />
 {/if}

@@ -21,10 +21,7 @@ import { drizzle } from "drizzle-orm/neon-http"
 import { neon } from "@neondatabase/serverless"
 import { GoogleGenAI, Type } from "@google/genai"
 import { eq } from "drizzle-orm"
-import {
-  imageTags,
-  tagTranslations,
-} from "../src/lib/server/db/schema"
+import { imageTags, tagTranslations } from "../src/lib/server/db/schema"
 
 // Load environment variables
 config()
@@ -218,16 +215,18 @@ async function main() {
 
   // Get existing translations for this locale
   const existingTranslations = await getExistingTranslations(targetLocale)
-  console.log(
-    `Already translated: ${existingTranslations.size} tags\n`,
-  )
+  console.log(`Already translated: ${existingTranslations.size} tags\n`)
 
   // Filter to only tags that need translation, apply limit
-  const allTagsToTranslate = allTags.filter((tag) => !existingTranslations.has(tag))
+  const allTagsToTranslate = allTags.filter(
+    (tag) => !existingTranslations.has(tag),
+  )
   const tagsToTranslate = allTagsToTranslate.slice(0, maxItems)
 
   if (allTagsToTranslate.length > maxItems) {
-    console.log(`Tags needing translation: ${allTagsToTranslate.length} (limited to ${maxItems})\n`)
+    console.log(
+      `Tags needing translation: ${allTagsToTranslate.length} (limited to ${maxItems})\n`,
+    )
   } else {
     console.log(`Tags to translate: ${tagsToTranslate.length}\n`)
   }
@@ -239,7 +238,9 @@ async function main() {
 
   // Chunk tags into batches for efficient API usage
   const batches = chunkArray(tagsToTranslate, BATCH_SIZE)
-  console.log(`Processing ${batches.length} batch(es) of up to ${BATCH_SIZE} tags each\n`)
+  console.log(
+    `Processing ${batches.length} batch(es) of up to ${BATCH_SIZE} tags each\n`,
+  )
 
   let successCount = 0
   let failCount = 0
@@ -247,7 +248,9 @@ async function main() {
 
   for (const batch of batches) {
     batchNum++
-    console.log(`\n--- Batch ${batchNum}/${batches.length} (${batch.length} tags) ---\n`)
+    console.log(
+      `\n--- Batch ${batchNum}/${batches.length} (${batch.length} tags) ---\n`,
+    )
 
     try {
       const results = await translateBatch(batch, targetLocale)
@@ -258,14 +261,19 @@ async function main() {
         const usedFallback = !results[tag]
 
         try {
-          await db.insert(tagTranslations).values({
-            tagSlug: tag,
-            locale: targetLocale,
-            localizedSlug: translation.slug.toLowerCase(),
-            displayName: translation.displayName,
-          }).onConflictDoNothing()
+          await db
+            .insert(tagTranslations)
+            .values({
+              tagSlug: tag,
+              locale: targetLocale,
+              localizedSlug: translation.slug.toLowerCase(),
+              displayName: translation.displayName,
+            })
+            .onConflictDoNothing()
         } catch (dbError) {
-          console.error(`\n[FATAL] Database error after successful API call - exiting to prevent credit waste`)
+          console.error(
+            `\n[FATAL] Database error after successful API call - exiting to prevent credit waste`,
+          )
           console.error(`  Tag: ${tag}`)
           console.error(`  Error:`, dbError)
           console.log(`\n=== Partial Summary (interrupted) ===`)
@@ -278,7 +286,9 @@ async function main() {
           console.log(`  [FALLBACK] ${tag} → ${translation.displayName}`)
           failCount++
         } else {
-          console.log(`  [OK] ${tag} → ${translation.displayName} (${translation.slug})`)
+          console.log(
+            `  [OK] ${tag} → ${translation.displayName} (${translation.slug})`,
+          )
           successCount++
         }
       }
@@ -288,14 +298,19 @@ async function main() {
       for (const tag of batch) {
         const translation = fallbackTranslation(tag)
         try {
-          await db.insert(tagTranslations).values({
-            tagSlug: tag,
-            locale: targetLocale,
-            localizedSlug: translation.slug.toLowerCase(),
-            displayName: translation.displayName,
-          }).onConflictDoNothing()
+          await db
+            .insert(tagTranslations)
+            .values({
+              tagSlug: tag,
+              locale: targetLocale,
+              localizedSlug: translation.slug.toLowerCase(),
+              displayName: translation.displayName,
+            })
+            .onConflictDoNothing()
         } catch (dbError) {
-          console.error(`\n[FATAL] Database error - exiting to prevent further issues`)
+          console.error(
+            `\n[FATAL] Database error - exiting to prevent further issues`,
+          )
           console.error(`  Error:`, dbError)
           process.exit(1)
         }

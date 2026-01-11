@@ -37,7 +37,10 @@ export async function generateBatchSuggestionsWithLLM(
     .join("\n")
 
   // Build the response schema with each tag as a property
-  const properties: Record<string, { type: typeof Type.ARRAY; items: { type: typeof Type.STRING } }> = {}
+  const properties: Record<
+    string,
+    { type: typeof Type.ARRAY; items: { type: typeof Type.STRING } }
+  > = {}
   for (const tag of tags) {
     properties[tag.tagSlug] = {
       type: Type.ARRAY,
@@ -101,7 +104,10 @@ Return exactly 3 suggestions for each tag.`,
 
     return result
   } catch (error) {
-    console.error(`Batch suggestion generation failed for locale ${locale}:`, error)
+    console.error(
+      `Batch suggestion generation failed for locale ${locale}:`,
+      error,
+    )
     // Return empty object on error - caller should handle fallback
     return {}
   }
