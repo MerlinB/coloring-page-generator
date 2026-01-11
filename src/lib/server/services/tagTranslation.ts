@@ -133,7 +133,10 @@ The English version should keep the original tag as-is.`,
           items: {
             type: Type.OBJECT,
             properties: {
-              locale: { type: Type.STRING, description: "Locale code (en, de)" },
+              locale: {
+                type: Type.STRING,
+                description: "Locale code (en, de)",
+              },
               slug: {
                 type: Type.STRING,
                 description: "URL-safe lowercase slug",
@@ -204,7 +207,8 @@ export async function ensureTagTranslations(
           tagSlug: canonicalTag,
           locale: t.locale,
           // For English, always use the canonical tag as the slug
-          localizedSlug: t.locale === "en" ? canonicalTag : t.slug.toLowerCase(),
+          localizedSlug:
+            t.locale === "en" ? canonicalTag : t.slug.toLowerCase(),
           displayName: t.displayName,
         })),
       )
@@ -284,7 +288,10 @@ export async function getLocalizedTagsBatch(
       ),
     )
 
-  const translationMap = new Map<string, { slug: string; displayName: string }>()
+  const translationMap = new Map<
+    string,
+    { slug: string; displayName: string }
+  >()
 
   // Add found translations
   for (const row of results) {
@@ -305,4 +312,37 @@ export async function getLocalizedTagsBatch(
   }
 
   return translationMap
+}
+
+/**
+ * Get localized slugs for a single tag across all locales in one query.
+ * Returns a Map keyed by locale code.
+ * Used for generating hreflang URLs without N+1 queries.
+ */
+export async function getLocalizedSlugsForAllLocales(
+  canonicalTag: string,
+): Promise<Map<Locale, string>> {
+  const results = await db
+    .select({
+      locale: tagTranslations.locale,
+      localizedSlug: tagTranslations.localizedSlug,
+    })
+    .from(tagTranslations)
+    .where(eq(tagTranslations.tagSlug, canonicalTag))
+
+  const slugMap = new Map<Locale, string>()
+
+  // Add found translations
+  for (const row of results) {
+    slugMap.set(row.locale as Locale, row.localizedSlug)
+  }
+
+  // Fill in fallbacks for any missing locales
+  for (const locale of SUPPORTED_LOCALES) {
+    if (!slugMap.has(locale)) {
+      slugMap.set(locale, canonicalTag)
+    }
+  }
+
+  return slugMap
 }

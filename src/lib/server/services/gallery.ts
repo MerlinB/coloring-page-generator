@@ -1,6 +1,6 @@
 import { db } from "$lib/server/db"
 import { galleryImages, imageTags } from "$lib/server/db/schema"
-import { eq, and, desc, inArray, count, sql } from "drizzle-orm"
+import { eq, and, desc, count, sql } from "drizzle-orm"
 import { uploadToBlob } from "./blob"
 import { extractTagsAndFilter } from "./tagging"
 import { ensureTagTranslations } from "./tagTranslation"
@@ -72,24 +72,12 @@ export async function saveToPublicGallery(
 
 /**
  * Get the most recent public images for a given tag.
+ * Uses a single JOIN query instead of two separate queries.
  */
 export async function getImagesByTag(
   tagSlug: string,
   limit: number = 5,
 ): Promise<PublicGalleryImage[]> {
-  // Find all image IDs that have this tag
-  const taggedImages = await db
-    .select({ imageId: imageTags.imageId })
-    .from(imageTags)
-    .where(eq(imageTags.tagSlug, tagSlug))
-
-  if (taggedImages.length === 0) {
-    return []
-  }
-
-  const imageIds = taggedImages.map((t) => t.imageId)
-
-  // Get the actual images that are public
   const images = await db
     .select({
       id: galleryImages.id,
@@ -99,11 +87,9 @@ export async function getImagesByTag(
       createdAt: galleryImages.createdAt,
     })
     .from(galleryImages)
+    .innerJoin(imageTags, eq(imageTags.imageId, galleryImages.id))
     .where(
-      and(
-        inArray(galleryImages.id, imageIds),
-        eq(galleryImages.isPublic, true),
-      ),
+      and(eq(imageTags.tagSlug, tagSlug), eq(galleryImages.isPublic, true)),
     )
     .orderBy(desc(galleryImages.createdAt))
     .limit(limit)
@@ -113,25 +99,14 @@ export async function getImagesByTag(
 
 /**
  * Get all unique tags that have at least one public image.
+ * Uses a single JOIN query with DISTINCT instead of two separate queries.
  */
 export async function getAllPublicTags(): Promise<string[]> {
-  // Get all image IDs that are public
-  const publicImages = await db
-    .select({ id: galleryImages.id })
-    .from(galleryImages)
-    .where(eq(galleryImages.isPublic, true))
-
-  if (publicImages.length === 0) {
-    return []
-  }
-
-  const publicImageIds = publicImages.map((img) => img.id)
-
-  // Get unique tags from these images
   const tags = await db
     .selectDistinct({ tagSlug: imageTags.tagSlug })
     .from(imageTags)
-    .where(inArray(imageTags.imageId, publicImageIds))
+    .innerJoin(galleryImages, eq(imageTags.imageId, galleryImages.id))
+    .where(eq(galleryImages.isPublic, true))
 
   return tags.map((t) => t.tagSlug)
 }

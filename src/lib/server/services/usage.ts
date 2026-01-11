@@ -247,30 +247,13 @@ export async function getFreeUsageForDevice(fingerprint: string): Promise<{
 }
 
 /**
- * Get total token balance for a list of codes.
+ * Get active codes with their balances and total token balance in a single query.
+ * Replaces separate getBalanceForCodes + getActiveCodesWithBalances calls.
  */
-export async function getBalanceForCodes(codes: string[]): Promise<number> {
-  if (codes.length === 0) return 0
-
-  const validCodes = await db.query.redemptionCodes.findMany({
-    where: and(
-      inArray(redemptionCodes.code, codes),
-      eq(redemptionCodes.status, "active"),
-      isNull(redemptionCodes.invalidatedAt),
-      gt(redemptionCodes.remainingTokens, 0),
-    ),
-  })
-
-  return validCodes.reduce((sum, code) => sum + code.remainingTokens, 0)
-}
-
-/**
- * Get codes with their individual balances.
- */
-export async function getActiveCodesWithBalances(
+export async function getActiveCodesAndBalance(
   codes: string[],
-): Promise<CodeBalance[]> {
-  if (codes.length === 0) return []
+): Promise<{ activeCodes: CodeBalance[]; tokenBalance: number }> {
+  if (codes.length === 0) return { activeCodes: [], tokenBalance: 0 }
 
   const validCodes = await db.query.redemptionCodes.findMany({
     where: and(
@@ -282,10 +265,17 @@ export async function getActiveCodesWithBalances(
     orderBy: desc(redemptionCodes.remainingTokens),
   })
 
-  return validCodes.map((c) => ({
+  const activeCodes = validCodes.map((c) => ({
     code: c.code,
     remainingTokens: c.remainingTokens,
   }))
+
+  const tokenBalance = validCodes.reduce(
+    (sum, code) => sum + code.remainingTokens,
+    0,
+  )
+
+  return { activeCodes, tokenBalance }
 }
 
 /**
@@ -295,9 +285,11 @@ export async function getUsageWithCodes(
   fingerprint: string,
   codes: string[],
 ): Promise<UsageData> {
-  const freeUsage = await getFreeUsageForDevice(fingerprint)
-  const tokenBalance = await getBalanceForCodes(codes)
-  const activeCodes = await getActiveCodesWithBalances(codes)
+  // Fetch free tier and code balances in parallel (2 queries instead of 4)
+  const [freeUsage, { activeCodes, tokenBalance }] = await Promise.all([
+    getFreeUsageForDevice(fingerprint),
+    getActiveCodesAndBalance(codes),
+  ])
 
   return {
     // Tokens replace free tier - if user has tokens, free tier shows 0
@@ -309,14 +301,23 @@ export async function getUsageWithCodes(
   }
 }
 
+export interface ConsumeResult {
+  success: boolean
+  consumedCode?: string
+  error?: string
+  /** Updated usage data after consumption (avoids extra fetch) */
+  usage?: UsageData
+}
+
 /**
  * Consume a generation from client-provided codes or free tier.
+ * Returns updated usage data to avoid needing a separate fetch after consumption.
  */
 export async function consumeWithCodes(
   fingerprint: string,
   prompt: string,
   codes: string[],
-): Promise<{ success: boolean; consumedCode?: string; error?: string }> {
+): Promise<ConsumeResult> {
   // First try to consume from provided codes
   if (codes.length > 0) {
     // Find a code with remaining tokens
@@ -351,15 +352,51 @@ export async function consumeWithCodes(
           wasFreeTier: false,
         })
 
-        return { success: true, consumedCode: activeCode.code }
+        // Return updated usage - fetch once after successful consumption
+        const usage = await getUsageWithCodes(fingerprint, codes)
+        return { success: true, consumedCode: activeCode.code, usage }
       }
       // If update failed (race condition), fall through to try another code or free tier
     }
   }
 
-  // Fall back to free tier
-  const freeUsage = await getFreeUsageForDevice(fingerprint)
-  if (freeUsage.freeRemaining > 0) {
+  // Fall back to free tier - need to get device state
+  let device = await db.query.devices.findFirst({
+    where: eq(devices.fingerprint, fingerprint),
+  })
+
+  const now = new Date()
+
+  if (!device) {
+    const [newDevice] = await db
+      .insert(devices)
+      .values({
+        fingerprint,
+        usageCount: 0,
+        weekStartedAt: now,
+      })
+      .returning()
+    device = newDevice
+  }
+
+  // Check if week has reset
+  const weekStart = new Date(device.weekStartedAt)
+  if (now.getTime() - weekStart.getTime() > WEEK_MS) {
+    const [updated] = await db
+      .update(devices)
+      .set({
+        usageCount: 0,
+        weekStartedAt: now,
+        updatedAt: now,
+      })
+      .where(eq(devices.id, device.id))
+      .returning()
+    device = updated
+  }
+
+  const freeRemaining = Math.max(0, FREE_TIER_LIMIT - device.usageCount)
+
+  if (freeRemaining > 0) {
     const result = await db
       .update(devices)
       .set({
@@ -372,7 +409,7 @@ export async function consumeWithCodes(
           lt(devices.usageCount, FREE_TIER_LIMIT),
         ),
       )
-      .returning({ id: devices.id })
+      .returning({ usageCount: devices.usageCount })
 
     if (result.length > 0) {
       await db.insert(generations).values({
@@ -381,7 +418,22 @@ export async function consumeWithCodes(
         wasFreeTier: true,
       })
 
-      return { success: true }
+      // Compute updated usage inline instead of fetching again
+      const newFreeRemaining = Math.max(
+        0,
+        FREE_TIER_LIMIT - result[0].usageCount,
+      )
+      const nextReset = new Date(weekStart.getTime() + WEEK_MS)
+
+      const usage: UsageData = {
+        freeRemaining: newFreeRemaining,
+        tokenBalance: 0,
+        weekResetDate: nextReset.toISOString(),
+        activeCode: null,
+        activeCodes: [],
+      }
+
+      return { success: true, usage }
     }
   }
 

@@ -120,8 +120,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       console.error("Failed to consume generation:", consumeResult.error)
     }
 
-    // Get updated usage
-    const newUsage = await getUsageWithCodes(fingerprint, codes)
+    // Use the usage data returned from consumption (avoids extra DB fetch)
+    // Fall back to the pre-generation usage if consumption failed
+    const newUsage = consumeResult.usage ?? usage
 
     const finalPrompt =
       editMode && sourcePrompt
