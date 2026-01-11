@@ -18,7 +18,9 @@
   const canonicalUrl = $derived(
     buildDomainUrl(page.url.pathname, currentLocale),
   )
-  const ogLocale = $derived(currentLocale === "de" ? "de_DE" : "en_US")
+  const ogLocale = $derived(
+    currentLocale === "de" ? "de_DE" : currentLocale === "fr" ? "fr_FR" : "en_US",
+  )
 
   let { children, data } = $props()
 

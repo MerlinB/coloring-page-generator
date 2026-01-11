@@ -17,6 +17,7 @@
   const languageNames: Record<string, () => string> = {
     en: () => m.language_en(),
     de: () => m.language_de(),
+    fr: () => m.language_fr(),
   }
 
   const currentLocale = $derived(getLocale())
