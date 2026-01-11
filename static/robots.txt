@@ -1,5 +1,4 @@
 # Coloring Page Generator
-# https://makecoloringpages.com / https://ausmalbilder-generator.de
 
 User-agent: *
 Allow: /
@@ -11,3 +10,5 @@ Disallow: /purchase/
 # Sitemaps (domain-specific, served dynamically)
 Sitemap: https://www.makecoloringpages.com/sitemap.xml
 Sitemap: https://www.ausmalbilder-generator.de/sitemap.xml
+Sitemap: https://www.generateurcoloriages.com/sitemap.xml
+Sitemap: https://www.generadordibujoscolorear.com/sitemap.xml

@@ -72,17 +72,18 @@ The app uses `@inlang/paraglide-js` for localization with domain-based locale de
 
 ### Domains
 
-| Domain                      | Locale | Description           |
-| --------------------------- | ------ | --------------------- |
-| `makecoloringpages.com`     | `en`   | English (base locale) |
-| `ausmalbilder-generator.de` | `de`   | German                |
+| Domain                         | Locale | Description           |
+| ------------------------------ | ------ | --------------------- |
+| `makecoloringpages.com`        | `en`   | English (base locale) |
+| `ausmalbilder-generator.de`    | `de`   | German                |
+| `generateurcoloriages.com`     | `fr`   | French                |
+| `generadordibujoscolorear.com` | `es`   | Spanish               |
 
 ### Key Files
 
 - `src/lib/i18n/domains.ts` - **Single source of truth** for supported locales, domain mappings
 - `project.inlang/settings.json` - Paraglide config (must match `SUPPORTED_LOCALES` in domains.ts)
-- `messages/en.json` - English translations (source)
-- `messages/de.json` - German translations
+- `messages/*.json` - Translation files (en, de, fr, es)
 - `src/lib/paraglide/` - Auto-generated runtime (do not edit)
 - `src/lib/i18n/client.ts` - Client-side locale detection from HTML lang
 - `src/hooks.server.ts` - Domain-to-locale detection via overwriteGetLocale
@@ -91,13 +92,7 @@ The app uses `@inlang/paraglide-js` for localization with domain-based locale de
 
 ### Domain Detection
 
-Locale is determined by hostname via `src/lib/i18n/domains.ts`:
-
-- `makecoloringpages.com` → English
-- `ausmalbilder-generator.de` → German
-- `localhost` → English (development)
-
-The implementation uses `overwriteGetLocale()` with `AsyncLocalStorage` (per paraglide docs):
+Locale is determined by hostname via `src/lib/i18n/domains.ts` (see Domains table above). The implementation uses `overwriteGetLocale()` with `AsyncLocalStorage` (per paraglide docs):
 
 - **Server**: `hooks.server.ts` detects hostname, stores locale in `AsyncLocalStorage`, `getLocale()` returns it
 - **Client**: `src/lib/i18n/client.ts` reads from `document.documentElement.lang` (set during SSR)
@@ -117,34 +112,39 @@ The language switcher links directly to the other domain (not URL paths) to avoi
 
    ```typescript
    // Add to SUPPORTED_LOCALES array
-   export const SUPPORTED_LOCALES = ["en", "de", "fr"] as const
+   export const SUPPORTED_LOCALES = ["en", "de", "fr", "es", "it"] as const
 
    // Add to DOMAIN_LOCALE_MAP
-   'coloriages-enfants.fr': 'fr',
+   'disegni-da-colorare.it': 'it',
+   'www.disegni-da-colorare.it': 'it',
 
    // Add to LOCALE_DOMAIN_MAP
-   fr: 'https://www.coloriages-enfants.fr'
+   it: 'https://www.disegni-da-colorare.it'
    ```
 
 2. Update `project.inlang/settings.json` to match:
 
    ```json
-   "locales": ["en", "de", "fr"]
+   "locales": ["en", "de", "fr", "es", "it"]
    ```
 
-3. Create translation file `messages/fr.json` (copy from `en.json` and translate)
+3. Create translation file `messages/it.json` (copy from `en.json` and translate)
 
-4. Add language name to message files:
+4. Add native language name to `LanguageSwitcher.svelte`:
 
-   ```json
-   "language_fr": "Français"
+   ```typescript
+   const languageNames: Record<string, string> = {
+     en: "English",
+     de: "Deutsch",
+     fr: "Français",
+     es: "Español",
+     it: "Italiano",
+   }
    ```
 
-5. Update `LanguageSwitcher.svelte` to include the new language
+5. Run `pnpm translate-tags it` to batch-translate existing tags to the new locale
 
-6. Run `pnpm translate-tags` to batch-translate existing tags to all locales (or `pnpm translate-tags fr` for just the new locale)
-
-7. Point the new domain DNS to Vercel
+6. Point the new domain DNS to Vercel
 
 ### Using Messages in Components
 
@@ -161,7 +161,7 @@ The language switcher links directly to the other domain (not URL paths) to avoi
 - `src/routes/+layout.svelte` - Global meta tags (title, description, OG, Twitter, hreflang, JSON-LD)
 - `src/routes/sitemap.xml/+server.ts` - Dynamic, locale-aware XML sitemap
 - `src/routes/+error.svelte` - Custom 404/500 error page
-- `static/robots.txt` - Disallows `/api/` and `/purchase/`, references both domain sitemaps
+- `static/robots.txt` - Disallows `/api/` and `/purchase/`, references all domain sitemaps
 
 **New pages**: Public pages use layout defaults. Transactional pages (purchase flow, errors) should add `<meta name="robots" content="noindex, nofollow" />`
 
