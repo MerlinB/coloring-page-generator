@@ -1,6 +1,6 @@
 import { db } from "$lib/server/db"
 import { galleryImages, imageTags } from "$lib/server/db/schema"
-import { eq, and, desc, inArray } from "drizzle-orm"
+import { eq, and, desc, inArray, count, sql } from "drizzle-orm"
 import { uploadToBlob } from "./blob"
 import { extractTagsAndFilter } from "./tagging"
 import { ensureTagTranslations } from "./tagTranslation"
@@ -134,4 +134,30 @@ export async function getAllPublicTags(): Promise<string[]> {
     .where(inArray(imageTags.imageId, publicImageIds))
 
   return tags.map((t) => t.tagSlug)
+}
+
+/**
+ * Get tags ordered by popularity (number of public images).
+ * Returns the top N tags with their image counts.
+ */
+export async function getPopularTags(
+  limit = 100,
+): Promise<{ tagSlug: string; imageCount: number }[]> {
+  // Join imageTags with galleryImages, count only public images per tag
+  const results = await db
+    .select({
+      tagSlug: imageTags.tagSlug,
+      imageCount: count(imageTags.imageId),
+    })
+    .from(imageTags)
+    .innerJoin(galleryImages, eq(imageTags.imageId, galleryImages.id))
+    .where(eq(galleryImages.isPublic, true))
+    .groupBy(imageTags.tagSlug)
+    .orderBy(desc(sql`count(${imageTags.imageId})`))
+    .limit(limit)
+
+  return results.map((r) => ({
+    tagSlug: r.tagSlug,
+    imageCount: Number(r.imageCount),
+  }))
 }

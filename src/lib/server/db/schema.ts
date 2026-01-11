@@ -188,11 +188,13 @@ export const tagTranslations = pgTable(
       .defaultNow(),
   },
   (table) => [
+    // For reverse lookup: localized slug -> canonical tag
     index("tag_translations_locale_slug_idx").on(
       table.locale,
       table.localizedSlug,
     ),
-    index("tag_translations_tag_slug_idx").on(table.tagSlug),
+    // For batch lookup: WHERE locale = ? AND tag_slug IN (...)
+    index("tag_translations_locale_tag_idx").on(table.locale, table.tagSlug),
     unique("tag_translations_tag_locale_unique").on(table.tagSlug, table.locale),
   ],
 )

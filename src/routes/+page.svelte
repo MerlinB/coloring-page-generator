@@ -14,8 +14,11 @@
   import PurchasePrompt from "$lib/components/PurchasePrompt.svelte"
   import RedeemCode from "$lib/components/RedeemCode.svelte"
   import SiteTitle from "$lib/components/SiteTitle.svelte"
+  import PopularTagsSection from "$lib/components/PopularTagsSection.svelte"
   import type { GalleryImage } from "$lib/types"
   import * as m from "$lib/paraglide/messages"
+
+  let { data } = $props()
 
   // Lightbox state
   let lightboxOpen = $state(false)
@@ -277,6 +280,9 @@
       />
     </section>
   {/if}
+
+  <!-- Popular tags for SEO -->
+  <PopularTagsSection tags={data.popularTags} />
 </main>
 
 <!-- Lightbox overlay -->

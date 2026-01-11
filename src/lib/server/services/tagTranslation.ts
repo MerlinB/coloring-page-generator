@@ -2,7 +2,7 @@ import { GoogleGenAI, Type } from "@google/genai"
 import { GEMINI_API_KEY } from "$env/static/private"
 import { db } from "$lib/server/db"
 import { tagTranslations } from "$lib/server/db/schema"
-import { eq, and } from "drizzle-orm"
+import { eq, and, inArray } from "drizzle-orm"
 import type { Locale } from "$lib/i18n/domains"
 
 const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY })
@@ -255,4 +255,54 @@ export async function translateTagToLocale(
     slug: canonicalTag,
     displayName: canonicalTag.charAt(0).toUpperCase() + canonicalTag.slice(1),
   }
+}
+
+/**
+ * Batch lookup of localized slugs and display names for multiple tags.
+ * Much more efficient than calling getLocalizedSlug/getLocalizedDisplayName in a loop.
+ * Returns a Map keyed by canonical tag slug.
+ */
+export async function getLocalizedTagsBatch(
+  canonicalTags: string[],
+  locale: Locale,
+): Promise<Map<string, { slug: string; displayName: string }>> {
+  if (canonicalTags.length === 0) {
+    return new Map()
+  }
+
+  const results = await db
+    .select({
+      tagSlug: tagTranslations.tagSlug,
+      localizedSlug: tagTranslations.localizedSlug,
+      displayName: tagTranslations.displayName,
+    })
+    .from(tagTranslations)
+    .where(
+      and(
+        inArray(tagTranslations.tagSlug, canonicalTags),
+        eq(tagTranslations.locale, locale),
+      ),
+    )
+
+  const translationMap = new Map<string, { slug: string; displayName: string }>()
+
+  // Add found translations
+  for (const row of results) {
+    translationMap.set(row.tagSlug, {
+      slug: row.localizedSlug,
+      displayName: row.displayName,
+    })
+  }
+
+  // Fill in fallbacks for any missing tags
+  for (const tag of canonicalTags) {
+    if (!translationMap.has(tag)) {
+      translationMap.set(tag, {
+        slug: tag,
+        displayName: tag.charAt(0).toUpperCase() + tag.slice(1),
+      })
+    }
+  }
+
+  return translationMap
 }
