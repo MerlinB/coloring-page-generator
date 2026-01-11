@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { browser } from "$app/environment"
+  import { browser, dev } from "$app/environment"
   import { page } from "$app/state"
+  import { injectAnalytics } from "@vercel/analytics/sveltekit"
   import { gallery } from "$lib/stores/gallery.svelte"
   import { fingerprintStore } from "$lib/stores/fingerprint.svelte"
   import { usageStore } from "$lib/stores/usage.svelte"
@@ -13,6 +14,9 @@
   import * as m from "$lib/paraglide/messages"
   import "./layout.css"
   import favicon from "$lib/assets/favicon.svg"
+
+  // Initialize Vercel Analytics
+  injectAnalytics({ mode: dev ? "development" : "production" })
 
   const currentLocale = $derived(getLocale() as Locale)
   const canonicalUrl = $derived(

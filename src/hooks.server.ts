@@ -185,7 +185,7 @@ const securityHeadersHandle: Handle = async ({ event, resolve }) => {
   )
   response.headers.set(
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.public.blob.vercel-storage.com; frame-src https://js.stripe.com; connect-src 'self' https://api.stripe.com",
+    "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.public.blob.vercel-storage.com; frame-src https://js.stripe.com; connect-src 'self' https://api.stripe.com https://va.vercel-scripts.com",
   )
 
   return response

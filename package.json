@@ -48,6 +48,7 @@
     "@google/genai": "^1.34.0",
     "@lucide/svelte": "^0.562.0",
     "@neondatabase/serverless": "^1.0.2",
+    "@vercel/analytics": "^1.6.1",
     "@vercel/blob": "^2.0.0",
     "drizzle-orm": "^0.45.1",
     "idb": "^8.0.3",
