@@ -23,11 +23,11 @@
 </script>
 
 {#if tags.length > 0}
-  <section class="mx-auto mt-12 max-w-7xl rounded-3xl bg-card p-6 shadow-lg">
+  <section class="mx-auto mt-12 max-w-7xl text-center">
     <h2 class="mb-4 font-display text-2xl font-bold text-coral-700">
       {m.home_popular_tags_title()}
     </h2>
-    <div class="flex flex-wrap gap-2">
+    <div class="flex flex-wrap justify-center gap-2">
       {#each tags as tag (tag.slug)}
         <a
           href="/{tag.slug}"
