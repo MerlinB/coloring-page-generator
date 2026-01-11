@@ -1,9 +1,22 @@
 /**
- * Domain-to-locale mappings for i18n.
- * Each domain serves content in exactly one language.
+ * Locale configuration and domain mappings for i18n.
+ *
+ * This is the SINGLE SOURCE OF TRUTH for supported locales.
+ * When adding a new locale:
+ * 1. Add it to SUPPORTED_LOCALES below
+ * 2. Add domain mapping in DOMAIN_LOCALE_MAP and LOCALE_DOMAIN_MAP
+ * 3. Update project.inlang/settings.json to match
+ * 4. Create messages/<locale>.json translation file
  */
 
-export type Locale = "en" | "de"
+/** All supported locales. This is the canonical source - other files import from here. */
+export const SUPPORTED_LOCALES = ["en", "de"] as const
+
+/** Locale type derived from SUPPORTED_LOCALES */
+export type Locale = (typeof SUPPORTED_LOCALES)[number]
+
+/** Base locale used for canonical content and fallbacks */
+export const BASE_LOCALE: Locale = "en"
 
 export const DOMAIN_LOCALE_MAP: Record<string, Locale> = {
   // English domains
@@ -23,12 +36,12 @@ export const LOCALE_DOMAIN_MAP: Record<Locale, string> = {
 
 /**
  * Get the locale for a given hostname.
- * Falls back to 'en' if hostname is not mapped.
+ * Falls back to BASE_LOCALE if hostname is not mapped.
  */
 export function getLocaleFromHostname(hostname: string): Locale {
   // Strip port number if present (e.g., localhost:5173)
   const host = hostname.split(":")[0]
-  return DOMAIN_LOCALE_MAP[host] ?? "en"
+  return DOMAIN_LOCALE_MAP[host] ?? BASE_LOCALE
 }
 
 /**

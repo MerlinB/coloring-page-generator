@@ -79,11 +79,11 @@ The app uses `@inlang/paraglide-js` for localization with domain-based locale de
 
 ### Key Files
 
-- `project.inlang/settings.json` - Paraglide project config (locales, modules)
+- `src/lib/i18n/domains.ts` - **Single source of truth** for supported locales, domain mappings
+- `project.inlang/settings.json` - Paraglide config (must match `SUPPORTED_LOCALES` in domains.ts)
 - `messages/en.json` - English translations (source)
 - `messages/de.json` - German translations
 - `src/lib/paraglide/` - Auto-generated runtime (do not edit)
-- `src/lib/i18n/domains.ts` - Domain-locale mappings and helpers
 - `src/lib/i18n/client.ts` - Client-side locale detection from HTML lang
 - `src/hooks.server.ts` - Domain-to-locale detection via overwriteGetLocale
 - `src/hooks.ts` - URL rerouting for locale paths (safety net)
@@ -113,33 +113,36 @@ The language switcher links directly to the other domain (not URL paths) to avoi
 
 ### Adding a New Language
 
-1. Add locale to `project.inlang/settings.json`:
+1. Add locale to `SUPPORTED_LOCALES` and domain mappings in `src/lib/i18n/domains.ts`:
+
+   ```typescript
+   // Add to SUPPORTED_LOCALES array
+   export const SUPPORTED_LOCALES = ["en", "de", "fr"] as const
+
+   // Add to DOMAIN_LOCALE_MAP
+   'coloriages-enfants.fr': 'fr',
+
+   // Add to LOCALE_DOMAIN_MAP
+   fr: 'https://www.coloriages-enfants.fr'
+   ```
+
+2. Update `project.inlang/settings.json` to match:
 
    ```json
    "locales": ["en", "de", "fr"]
    ```
 
-2. Create translation file `messages/fr.json` (copy from `en.json` and translate)
+3. Create translation file `messages/fr.json` (copy from `en.json` and translate)
 
-3. Add language name to message files:
+4. Add language name to message files:
 
    ```json
    "language_fr": "Français"
    ```
 
-4. Update `LanguageSwitcher.svelte` to include the new language
+5. Update `LanguageSwitcher.svelte` to include the new language
 
-5. Add domain mapping in `src/lib/i18n/domains.ts`:
-
-   ```typescript
-   // In DOMAIN_LOCALE_MAP
-   'coloriages-enfants.fr': 'fr',
-
-   // In LOCALE_DOMAIN_MAP
-   fr: 'https://www.coloriages-enfants.fr'
-   ```
-
-6. Run `pnpm translate-tags fr` to batch-translate existing tags to the new locale
+6. Run `pnpm translate-tags` to batch-translate existing tags to all locales (or `pnpm translate-tags fr` for just the new locale)
 
 7. Point the new domain DNS to Vercel
 

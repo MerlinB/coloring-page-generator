@@ -3,13 +3,10 @@ import { GEMINI_API_KEY } from "$env/static/private"
 import { db } from "$lib/server/db"
 import { tagTranslations } from "$lib/server/db/schema"
 import { eq, and, inArray } from "drizzle-orm"
-import type { Locale } from "$lib/i18n/domains"
+import { SUPPORTED_LOCALES, BASE_LOCALE, type Locale } from "$lib/i18n/domains"
 
 const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY })
 const MODEL = "gemini-2.5-flash"
-
-// All supported locales for tag translation
-const SUPPORTED_LOCALES: Locale[] = ["en", "de"]
 
 // Locale display names for LLM prompts
 const LOCALE_NAMES: Record<Locale, string> = {
@@ -43,9 +40,9 @@ export async function getCanonicalTag(
     return result[0].tagSlug
   }
 
-  // For English, also check if the slug matches a canonical tagSlug directly
+  // For base locale, also check if the slug matches a canonical tagSlug directly
   // (in case the translation record doesn't exist or has a different localizedSlug)
-  if (locale === "en") {
+  if (locale === BASE_LOCALE) {
     const directMatch = await db
       .select({ tagSlug: tagTranslations.tagSlug })
       .from(tagTranslations)
@@ -206,9 +203,9 @@ export async function ensureTagTranslations(
         toInsert.map((t) => ({
           tagSlug: canonicalTag,
           locale: t.locale,
-          // For English, always use the canonical tag as the slug
+          // For base locale, always use the canonical tag as the slug
           localizedSlug:
-            t.locale === "en" ? canonicalTag : t.slug.toLowerCase(),
+            t.locale === BASE_LOCALE ? canonicalTag : t.slug.toLowerCase(),
           displayName: t.displayName,
         })),
       )

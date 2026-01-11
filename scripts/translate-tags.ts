@@ -1,12 +1,14 @@
 /**
- * Batch translate tags to a new locale.
+ * Batch translate tags to supported locales.
  *
- * Usage: pnpm translate-tags <locale> [--limit N]
- * Example: pnpm translate-tags fr
- *          pnpm translate-tags fr --limit 50
+ * Usage: pnpm translate-tags [locale] [--limit N]
+ * Example: pnpm translate-tags           (translates to all locales: en, de)
+ *          pnpm translate-tags de        (translates to de only)
+ *          pnpm translate-tags --limit 50 (all locales, 50 items each)
  *
- * This script is used when adding a new language to translate all existing
- * canonical English tags to the new locale.
+ * This script translates canonical English tags to all supported locales.
+ * For English, it generates proper displayNames while keeping the slug unchanged.
+ * For other locales, it generates both localized slugs and displayNames.
  *
  * Optimized batching: Makes ONE API call per batch of tags (default 25 tags/batch).
  * This means 100 tags = 4 API calls (not 100).
@@ -22,6 +24,7 @@ import { neon } from "@neondatabase/serverless"
 import { GoogleGenAI, Type } from "@google/genai"
 import { eq } from "drizzle-orm"
 import { imageTags, tagTranslations } from "../src/lib/server/db/schema"
+import { SUPPORTED_LOCALES, BASE_LOCALE } from "../src/lib/i18n/domains"
 
 // Load environment variables
 config()
@@ -193,29 +196,31 @@ async function getExistingTranslations(locale: string): Promise<Set<string>> {
   return new Set(existing.map((e) => e.tagSlug))
 }
 
-async function main() {
-  const targetLocale = process.argv[2]
+interface TranslationResult {
+  successCount: number
+  failCount: number
+  totalProcessed: number
+  batchCount: number
+}
 
-  if (!targetLocale || targetLocale.startsWith("--")) {
-    console.error("Usage: pnpm translate-tags <locale> [--limit N]")
-    console.error("Example: pnpm translate-tags fr")
-    console.error("         pnpm translate-tags fr --limit 50")
-    process.exit(1)
-  }
-
-  const maxItems = parseMaxItems()
-
-  console.log(`\nTranslating tags to locale: ${targetLocale}`)
-  console.log(`Language: ${LOCALE_NAMES[targetLocale] || "Unknown"}`)
-  console.log(`Max items per run: ${maxItems}\n`)
-
-  // Get all unique tags
-  const allTags = await getAllUniqueTags()
-  console.log(`Found ${allTags.length} unique tags in the database`)
+/**
+ * Translate tags to a specific locale.
+ * Returns statistics about the translation run.
+ */
+async function translateToLocale(
+  targetLocale: string,
+  maxItems: number,
+  allTags: string[],
+): Promise<TranslationResult> {
+  console.log(`\n${"=".repeat(60)}`)
+  console.log(
+    `Translating to: ${targetLocale} (${LOCALE_NAMES[targetLocale] || "Unknown"})`,
+  )
+  console.log(`${"=".repeat(60)}`)
 
   // Get existing translations for this locale
   const existingTranslations = await getExistingTranslations(targetLocale)
-  console.log(`Already translated: ${existingTranslations.size} tags\n`)
+  console.log(`Already translated: ${existingTranslations.size} tags`)
 
   // Filter to only tags that need translation, apply limit
   const allTagsToTranslate = allTags.filter(
@@ -225,15 +230,15 @@ async function main() {
 
   if (allTagsToTranslate.length > maxItems) {
     console.log(
-      `Tags needing translation: ${allTagsToTranslate.length} (limited to ${maxItems})\n`,
+      `Tags needing translation: ${allTagsToTranslate.length} (limited to ${maxItems})`,
     )
   } else {
-    console.log(`Tags to translate: ${tagsToTranslate.length}\n`)
+    console.log(`Tags to translate: ${tagsToTranslate.length}`)
   }
 
   if (tagsToTranslate.length === 0) {
-    console.log("All tags are already translated!")
-    process.exit(0)
+    console.log("All tags are already translated for this locale!")
+    return { successCount: 0, failCount: 0, totalProcessed: 0, batchCount: 0 }
   }
 
   // Chunk tags into batches for efficient API usage
@@ -249,7 +254,7 @@ async function main() {
   for (const batch of batches) {
     batchNum++
     console.log(
-      `\n--- Batch ${batchNum}/${batches.length} (${batch.length} tags) ---\n`,
+      `--- Batch ${batchNum}/${batches.length} (${batch.length} tags) ---`,
     )
 
     try {
@@ -260,13 +265,17 @@ async function main() {
         const translation = results[tag] ?? fallbackTranslation(tag)
         const usedFallback = !results[tag]
 
+        // For base locale, always use the canonical tag as the slug
+        const localizedSlug =
+          targetLocale === BASE_LOCALE ? tag : translation.slug.toLowerCase()
+
         try {
           await db
             .insert(tagTranslations)
             .values({
               tagSlug: tag,
               locale: targetLocale,
-              localizedSlug: translation.slug.toLowerCase(),
+              localizedSlug,
               displayName: translation.displayName,
             })
             .onConflictDoNothing()
@@ -287,7 +296,7 @@ async function main() {
           failCount++
         } else {
           console.log(
-            `  [OK] ${tag} → ${translation.displayName} (${translation.slug})`,
+            `  [OK] ${tag} → ${translation.displayName} (${localizedSlug})`,
           )
           successCount++
         }
@@ -297,13 +306,15 @@ async function main() {
       // Apply fallback for entire batch - but exit on DB error
       for (const tag of batch) {
         const translation = fallbackTranslation(tag)
+        const localizedSlug =
+          targetLocale === BASE_LOCALE ? tag : translation.slug.toLowerCase()
         try {
           await db
             .insert(tagTranslations)
             .values({
               tagSlug: tag,
               locale: targetLocale,
-              localizedSlug: translation.slug.toLowerCase(),
+              localizedSlug,
               displayName: translation.displayName,
             })
             .onConflictDoNothing()
@@ -320,11 +331,69 @@ async function main() {
     }
   }
 
-  console.log(`\n=== Summary ===`)
+  console.log(`\n--- ${targetLocale} Summary ---`)
   console.log(`Successful: ${successCount}`)
   console.log(`Fallbacks: ${failCount}`)
   console.log(`Total: ${tagsToTranslate.length}`)
   console.log(`API calls: ${batches.length}`)
+
+  return {
+    successCount,
+    failCount,
+    totalProcessed: tagsToTranslate.length,
+    batchCount: batches.length,
+  }
+}
+
+async function main() {
+  const localeArg = process.argv[2]
+  const maxItems = parseMaxItems()
+
+  // Determine which locales to translate
+  let targetLocales: readonly string[]
+  if (localeArg && !localeArg.startsWith("--")) {
+    targetLocales = [localeArg]
+  } else {
+    targetLocales = SUPPORTED_LOCALES
+  }
+
+  console.log(`\nTranslate Tags Script`)
+  console.log(`Target locales: ${targetLocales.join(", ")}`)
+  console.log(`Max items per locale: ${maxItems}`)
+
+  // Get all unique tags once
+  const allTags = await getAllUniqueTags()
+  console.log(`Found ${allTags.length} unique tags in the database`)
+
+  // Track totals across all locales
+  let totalSuccess = 0
+  let totalFail = 0
+  let totalProcessed = 0
+  let totalBatches = 0
+
+  // Process each locale
+  for (const locale of targetLocales) {
+    const result = await translateToLocale(locale, maxItems, allTags)
+    totalSuccess += result.successCount
+    totalFail += result.failCount
+    totalProcessed += result.totalProcessed
+    totalBatches += result.batchCount
+  }
+
+  // Print grand summary if multiple locales
+  if (targetLocales.length > 1) {
+    console.log(`\n${"=".repeat(60)}`)
+    console.log(`GRAND TOTAL (${targetLocales.length} locales)`)
+    console.log(`${"=".repeat(60)}`)
+    console.log(`Successful: ${totalSuccess}`)
+    console.log(`Fallbacks: ${totalFail}`)
+    console.log(`Total processed: ${totalProcessed}`)
+    console.log(`Total API calls: ${totalBatches}`)
+  }
+
+  if (totalProcessed === 0) {
+    console.log(`\nAll tags are already translated for all locales!`)
+  }
 }
 
 main().catch((error) => {
