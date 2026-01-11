@@ -16,6 +16,7 @@ pnpm db:generate    # Generate Drizzle migrations
 pnpm db:migrate     # Run Drizzle migrations
 pnpm db:studio      # Open Drizzle Studio
 pnpm translate-tags # Batch translate gallery tags to a new locale
+pnpm generate-suggestions # Batch generate prompt suggestions for tag translations
 ```
 
 ## Architecture
